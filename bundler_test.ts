@@ -258,7 +258,7 @@ TEST_RUNNER.run({
           "./test_data/bundler/use_text.ts",
           "./test_data/bundler/use_text_bin.ts",
           "./test_data/bundler/tsconfig.json",
-          { packageJson: "./test_data/bundler/package.json" }
+          { packageJsonFile: "./test_data/bundler/package.json" }
         );
 
         // Verify

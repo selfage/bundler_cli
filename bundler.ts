@@ -20,7 +20,7 @@ let ASSET_CONTENT_BROWSER_TEMPLATE = `exports.default = "/{relativePath}";`;
 export interface CommonBundleOptions {
   environmentFile?: string;
   assetExts?: Array<string>;
-  packageJson?: string;
+  packageJsonFile?: string;
   skipMinify?: boolean;
   isDebug?: boolean;
 }
@@ -128,9 +128,10 @@ export async function bundle(
   if (options.assetExts) {
     assetExts = options.assetExts;
   } else {
-    let packageJson = options.packageJson ?? "./package.json";
-    assetExts = JSON.parse((await fs.promises.readFile(packageJson)).toString())
-      .assetExts;
+    let packageJsonFile = options.packageJsonFile ?? "./package.json";
+    assetExts = JSON.parse(
+      (await fs.promises.readFile(packageJsonFile)).toString()
+    ).assetExts;
   }
 
   await compileWithAssets(sourceFile, tsconfigFile, assetExts);
