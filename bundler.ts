@@ -14,15 +14,14 @@ declare module "*.{ext}" {
    export default value;
 }
 `;
-let ASSET_CONTENT_NODE_TEMPLATE = `exports.default = __filename;`;
-let ASSET_CONTENT_BROWSER_TEMPLATE = `exports.default = "/{relativePath}";`;
 
 export interface CommonBundleOptions {
+  tsconfigFile?: string;
   environmentFile?: string;
   assetExts?: Array<string>;
   packageJsonFile?: string;
   skipMinify?: boolean;
-  isDebug?: boolean;
+  debug?: boolean;
 }
 
 export interface OutputFiles {
@@ -34,26 +33,16 @@ export interface OutputFiles {
 export async function bundleForNode(
   sourceFile: string,
   outputFile: string,
-  tsconfigFile: string,
   options?: CommonBundleOptions
 ): Promise<OutputFiles> {
   let rootDir = path.dirname(outputFile);
   return bundle(
     sourceFile,
     outputFile,
-    tsconfigFile,
-    rootDir,
-    // To correctly browserify __dirname and __filename. Otherwise, they are
-    // replaced based on '.' or cwd.
     rootDir,
     true,
     (file, rootDir, outputAssetFiles) => {
-      return new AssetTransformer(
-        file,
-        rootDir,
-        ASSET_CONTENT_NODE_TEMPLATE,
-        outputAssetFiles
-      );
+      return new AssetTransformer(file, rootDir, outputAssetFiles);
     },
     options
   );
@@ -62,26 +51,16 @@ export async function bundleForNode(
 export async function bundleForBrowser(
   sourceFile: string,
   outputFile: string,
-  tsconfigFile: string,
-  rootDir?: string,
+  rootDir = ".",
   options?: CommonBundleOptions
 ): Promise<OutputFiles> {
-  rootDir = rootDir ?? path.dirname(outputFile);
   return bundle(
     sourceFile,
     outputFile,
-    tsconfigFile,
     rootDir,
-    // Expect no __dirname or __filename and thus pass in a trivial base dir.
-    ".",
     false,
     (file, rootDir, outputAssetFiles) => {
-      return new AssetTransformer(
-        file,
-        rootDir,
-        ASSET_CONTENT_BROWSER_TEMPLATE,
-        outputAssetFiles
-      );
+      return new AssetTransformer(file, rootDir, outputAssetFiles);
     },
     options
   );
@@ -91,7 +70,6 @@ class AssetTransformer extends stream.Transform {
   public constructor(
     private absoluteFilePath: string,
     private rootDir: string,
-    private assetContentTemplate: string,
     private outputAssetFilePaths: Array<string>
   ) {
     super({
@@ -103,7 +81,8 @@ class AssetTransformer extends stream.Transform {
         this.outputAssetFilePaths.push(`./${relativePath}`);
         callback(
           undefined,
-          this.assetContentTemplate.replace("{relativePath}", relativePath)
+          // __filename will be transformed later by Browserify.
+          `exports.default = __filename;`
         );
       },
     });
@@ -113,9 +92,7 @@ class AssetTransformer extends stream.Transform {
 export async function bundle(
   sourceFile: string,
   outputFile: string,
-  tsconfigFile: string,
   outputRootDir: string,
-  browserifyBaseDir: string,
   inNode: boolean,
   transformerFactoryFn: (
     file: string,
@@ -134,9 +111,9 @@ export async function bundle(
     ).assetExts;
   }
 
-  await compileWithAssets(sourceFile, tsconfigFile, assetExts);
+  await compileWithAssets(sourceFile, options.tsconfigFile, assetExts);
   if (options.environmentFile) {
-    await compile(options.environmentFile, tsconfigFile);
+    await compile(options.environmentFile, options.tsconfigFile);
   }
 
   let filesToBeBrowserified = new Array<string>();
@@ -144,18 +121,18 @@ export async function bundle(
     // environmentFile, if exists, needs to go first.
     filesToBeBrowserified.push(
       path.relative(
-        browserifyBaseDir,
+        outputRootDir,
         stripFileExtension(options.environmentFile) + ".js"
       )
     );
   }
   filesToBeBrowserified.push(
-    path.relative(browserifyBaseDir, stripFileExtension(sourceFile) + ".js")
+    path.relative(outputRootDir, stripFileExtension(sourceFile) + ".js")
   );
   let browserifyHandler = browserifyConstructor(filesToBeBrowserified, {
     node: inNode,
-    basedir: browserifyBaseDir,
-    debug: options.isDebug,
+    basedir: outputRootDir,
+    debug: options.debug,
   });
   let outputAssetFiles = new Array<string>();
   browserifyHandler.transform((file) => {
@@ -172,7 +149,7 @@ export async function bundle(
     outputCode = bundledCode;
   } else {
     let minifyOptions: UglifyJS.MinifyOptions = {};
-    if (options.isDebug) {
+    if (options.debug) {
       minifyOptions.sourceMap = {
         content: "inline",
         includeSources: true,
@@ -197,7 +174,7 @@ export async function bundle(
 
 async function compileWithAssets(
   sourceFile: string,
-  tsconfigFile: string,
+  tsconfigFile?: string,
   assetExts?: Array<string>
 ): Promise<void> {
   let supFiles = new Array<string>();

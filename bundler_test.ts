@@ -92,7 +92,7 @@ TEST_RUNNER.run({
         await bundleForNode(
           "./test_data/bundler/two_file.ts",
           "./test_data/bundler/two_file_bin.ts",
-          "./test_data/bundler/tsconfig.json"
+          { tsconfigFile: "./test_data/bundler/tsconfig.json" }
         );
 
         // Verify
@@ -117,8 +117,10 @@ TEST_RUNNER.run({
         await bundleForNode(
           "./test_data/bundler/two_file.ts",
           "./test_data/bundler/two_file_bin.ts",
-          "./test_data/bundler/tsconfig.json",
-          { skipMinify: true }
+          {
+            tsconfigFile: "./test_data/bundler/tsconfig.json",
+            skipMinify: true,
+          }
         );
 
         // Verify
@@ -143,8 +145,7 @@ TEST_RUNNER.run({
         await bundleForNode(
           "./test_data/bundler/stack_trace.ts",
           "./test_data/bundler/stack_trace_bin.js",
-          "./test_data/bundler/tsconfig.json",
-          { isDebug: true }
+          { tsconfigFile: "./test_data/bundler/tsconfig.json", debug: true }
         );
 
         // Verify
@@ -168,8 +169,10 @@ TEST_RUNNER.run({
         await bundleForNode(
           "./test_data/bundler/try_environment.ts",
           "./test_data/bundler/try_environment_bin.js",
-          "./test_data/bundler/tsconfig.json",
-          { environmentFile: "./test_data/bundler/environment_dev.ts" }
+          {
+            tsconfigFile: "./test_data/bundler/tsconfig.json",
+            environmentFile: "./test_data/bundler/environment_dev.ts",
+          }
         );
 
         // Verify
@@ -195,8 +198,10 @@ TEST_RUNNER.run({
         await bundleForNode(
           "./test_data/bundler/try_environment.ts",
           "./test_data/bundler/try_environment_bin.js",
-          "./test_data/bundler/tsconfig.json",
-          { environmentFile: "./test_data/bundler/environment_prod.ts" }
+          {
+            tsconfigFile: "./test_data/bundler/tsconfig.json",
+            environmentFile: "./test_data/bundler/environment_prod.ts",
+          }
         );
 
         // Verify
@@ -222,8 +227,10 @@ TEST_RUNNER.run({
         let outputFiles = await bundleForNode(
           "./test_data/bundler/use_text.ts",
           "./test_data/bundler/use_text_bin.ts",
-          "./test_data/bundler/tsconfig.json",
-          { assetExts: ["txt"] }
+          {
+            tsconfigFile: "./test_data/bundler/tsconfig.json",
+            assetExts: ["txt"],
+          }
         );
 
         // Verify
@@ -257,8 +264,10 @@ TEST_RUNNER.run({
         await bundleForNode(
           "./test_data/bundler/use_text.ts",
           "./test_data/bundler/use_text_bin.ts",
-          "./test_data/bundler/tsconfig.json",
-          { packageJsonFile: "./test_data/bundler/package.json" }
+          {
+            tsconfigFile: "./test_data/bundler/tsconfig.json",
+            packageJsonFile: "./test_data/bundler/package.json",
+          }
         );
 
         // Verify
@@ -283,17 +292,16 @@ TEST_RUNNER.run({
         let outputFiles = await bundleForBrowser(
           "./test_data/bundler/stack_trace.ts",
           "./test_data/bundler/stack_trace_bin.js",
-          "./test_data/bundler/tsconfig.json",
           undefined,
-          { isDebug: true }
+          { tsconfigFile: "./test_data/bundler/tsconfig.json", debug: true }
         );
 
         // Verify
         assertThat(
           outputFiles,
           eqOutputFiles({
-            rootDir: "./test_data/bundler",
-            binFile: "stack_trace_bin.js",
+            rootDir: ".",
+            binFile: "test_data/bundler/stack_trace_bin.js",
             assetFiles: [],
           }),
           "outputFiles"
@@ -332,9 +340,11 @@ TEST_RUNNER.run({
         let outputFiles = await bundleForBrowser(
           "./test_data/bundler/use_image.ts",
           "./test_data/bundler/use_image_bin.ts",
-          "./test_data/bundler/tsconfig.json",
           "./test_data",
-          { assetExts: ["jpg"] }
+          {
+            tsconfigFile: "./test_data/bundler/tsconfig.json",
+            assetExts: ["jpg"],
+          }
         );
 
         // Verify
