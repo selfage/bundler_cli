@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/selfage/bundler_cli#readme",
   "bin": {
-    "selfbun": "./main.js"
+    "bunfage": "./main.js"
   },
   "files": [
     "**/*.js",
