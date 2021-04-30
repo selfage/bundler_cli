@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 import packageConfig from "./package.json";
 import { bundleForBrowser, bundleForNode } from "./bundler";
+import { execute } from "./puppeteer_executor";
 import { runInNode } from "./runner_in_node";
+import { runInPuppeteer } from "./runner_in_puppeteer";
 import { Command } from "commander";
 import "source-map-support/register";
 
@@ -28,14 +30,18 @@ let TSCONFIG_FILE_OPTION = [
   `The file path to tsconfig.json. If not provided, it will try to look for ` +
     `it at the current working directory.`,
 ];
-let OUTPUT_FILE_OPTION = [
-  "-o, --output-file <file>",
-  `The output file path for bundled JavaScript file. The file ext can be ` +
-    `negelected and it's fixed as .js. If not provided, it will be ` +
-    `<sourceFile>_bin.js.`,
+let ROOT_DIR_OPTION = [
+  "-r, --root-dir <rootDir>",
+  `The root directory that you want to your web server from. Asset paths are ` +
+    `relative to it. If not provided, it will be the directory of the ` +
+    `output/bin/JS file.`,
+];
+let PORT_OPTION = [
+  "-p, --port <port>",
+  `The port number to start your local server.`,
 ];
 
-async function main(): Promise<void> {
+function main(): void {
   let program = new Command();
   program.version(packageConfig.version);
   program
@@ -60,9 +66,9 @@ async function main(): Promise<void> {
     .description(
       `Compile and bundle from a TypeScript source file, and run the bundled ` +
         `JavaScript file in Node. The file ext can be neglected and is ` +
-        `always fixed as .ts.`
+        `always fixed as .ts. Pass through arguments to the exectuable file ` +
+        `after --.`
     )
-    .option(OUTPUT_FILE_OPTION[0], OUTPUT_FILE_OPTION[1])
     .option(ENVIRONMENT_FILE_OPTION[0], ENVIRONMENT_FILE_OPTION[1])
     .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
     .option(SKIP_MINIFY_OPTION[0], SKIP_MINIFY_OPTION[1])
@@ -79,12 +85,7 @@ async function main(): Promise<void> {
         `Browser. Both file exts can be neglected and are always fixed as ` +
         `.ts and .js respectively.`
     )
-    .option(
-      "-r, --root-dir <rootDir>",
-      `The root directory that you want to your web server from. Asset paths ` +
-        `are relative to it. If not provided, it will be the directory of ` +
-        `the output file.`
-    )
+    .option(ROOT_DIR_OPTION[0], ROOT_DIR_OPTION[1])
     .option(ENVIRONMENT_FILE_OPTION[0], ENVIRONMENT_FILE_OPTION[1])
     .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
     .option(SKIP_MINIFY_OPTION[0], SKIP_MINIFY_OPTION[1])
@@ -93,7 +94,39 @@ async function main(): Promise<void> {
     .action(async (sourceFile, outputFile, options) => {
       await bundleForBrowser(sourceFile, outputFile, options.rootDir, options);
     });
-  await program.parseAsync();
+  program
+    .command("runInPuppeteer <sourceFile>")
+    .alias("prun")
+    .description(
+      `Compile and bundle from a TypeScript source file, and run the bundled ` +
+        `JavaScript file in Puppeteer, i.e., headless Chrome. The file ext ` +
+        `can be neglected and is always fixed as .ts. Pass through arguments ` +
+        `to the exectuable file after --.`
+    )
+    .option(ROOT_DIR_OPTION[0], ROOT_DIR_OPTION[1])
+    .option(ENVIRONMENT_FILE_OPTION[0], ENVIRONMENT_FILE_OPTION[1])
+    .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
+    .option(SKIP_MINIFY_OPTION[0], SKIP_MINIFY_OPTION[1])
+    .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
+    .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
+    .option(PORT_OPTION[0], PORT_OPTION[1], (value) => parseInt(value, 10))
+    .action((sourceFile, options, extraArgs) =>
+      runInPuppeteer(sourceFile, options.rootDir, options.port, options)
+    );
+  program
+    .command("executeInPuppeteer <binFile>")
+    .alias("pexe")
+    .description(
+      `Execute the presumably bundled JavaScript file in Puppeteer, i.e., ` +
+        `headless Chrome. The file ext can be neglected and is always fixed ` +
+        `as .js. Pass through arguments to the exectuable file after --.`
+    )
+    .option(ROOT_DIR_OPTION[0], ROOT_DIR_OPTION[1])
+    .option(PORT_OPTION[0], PORT_OPTION[1], (value) => parseInt(value, 10))
+    .action((binFile, options, extraArgs) =>
+      execute(binFile, options.rootDir, options.port, options)
+    );
+  program.parse();
 }
 
 main();
