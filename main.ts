@@ -33,8 +33,7 @@ let TSCONFIG_FILE_OPTION = [
 let ROOT_DIR_OPTION = [
   "-r, --root-dir <rootDir>",
   `The root directory that you want to your web server from. Asset paths are ` +
-    `relative to it. If not provided, it will be the directory of the ` +
-    `output/bin/JS file.`,
+    `relative to it. If not provided, it will be the current working directory.`,
 ];
 let PORT_OPTION = [
   "-p, --port <port>",
@@ -111,7 +110,13 @@ function main(): void {
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .option(PORT_OPTION[0], PORT_OPTION[1], (value) => parseInt(value, 10))
     .action((sourceFile, options, extraArgs) =>
-      runInPuppeteer(sourceFile, options.rootDir, options.port, options)
+      runInPuppeteer(
+        sourceFile,
+        options.rootDir,
+        options.port,
+        options,
+        extraArgs
+      )
     );
   program
     .command("executeInPuppeteer <binFile>")
@@ -124,7 +129,7 @@ function main(): void {
     .option(ROOT_DIR_OPTION[0], ROOT_DIR_OPTION[1])
     .option(PORT_OPTION[0], PORT_OPTION[1], (value) => parseInt(value, 10))
     .action((binFile, options, extraArgs) =>
-      execute(binFile, options.rootDir, options.port, options)
+      execute(binFile, options.rootDir, options.port, extraArgs)
     );
   program.parse();
 }

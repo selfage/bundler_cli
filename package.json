@@ -33,7 +33,7 @@
     "!test_suite.*"
   ],
   "assetExts": [
-    "img",
+    "jpg",
     "png",
     "gif"
   ],

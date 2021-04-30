@@ -4,24 +4,25 @@ import mime = require("mime-types");
 import path = require("path");
 import puppeteer = require("puppeteer");
 import { EXIT_CMD, SCREENSHOT_CMD } from "./puppeteer_executor_commands";
+import { stripFileExtension } from '@selfage/cli/io_helper';
 
 let HOST_NAME = "localhost";
 let PATH_EXTRACTION_REGEX = /^\/(.*)$/;
 
 export async function execute(
   binFile: string,
-  rootDir?: string,
+  rootDir = ".",
   port = 8000,
   args = new Array<string>()
 ): Promise<void> {
-  rootDir = rootDir ?? path.dirname(binFile);
+  let binJsFile = stripFileExtension(binFile) + ".js";
   let tempBinFile = path.join(rootDir, "selfage_temp_bin.html");
   let writeFilePromise = fs.promises.writeFile(
     tempBinFile,
     `<html>
   <body>
     <script type="text/javascript">var argv = [${args.join(",")}];</script>
-    <script type="text/javascript" src="/${binFile}"></script>
+    <script type="text/javascript" src="/${binJsFile}"></script>
   </body>
 </html>`
   );
