@@ -25,7 +25,7 @@ export async function execute(
   outputToConsole = false,
   args = new Array<string>()
 ): Promise<OutputCollection> {
-  let binJsFile = stripFileExtension(binFile) + ".js";
+  let binJsFile = path.relative(rootDir, stripFileExtension(binFile) + ".js");
   let tempBinFile = path.join(rootDir, "selfage_temp_bin.html");
   let writeFilePromise = fs.promises.writeFile(
     tempBinFile,

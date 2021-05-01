@@ -252,7 +252,9 @@ TEST_RUNNER.run({
           }),
           "outputFiles"
         );
-        let outputCollection = await execute(outputFiles.binFile);
+        let outputCollection = await execute(
+          "./test_data/bundler/stack_trace_bin.js"
+        );
         assertThat(
           outputCollection.error,
           eqArray([containStr("test_data/bundler/stack_trace.ts")]),
@@ -290,7 +292,10 @@ TEST_RUNNER.run({
           }),
           "outputFiles"
         );
-        await execute(outputFiles.binFile, outputFiles.rootDir);
+        await execute(
+          "./test_data/bundler/use_image_bin.js",
+          outputFiles.rootDir
+        );
         let [image1, image2] = await Promise.all([
           fs.promises.readFile("./test_data/bundler/rendered_image.png"),
           fs.promises.readFile("./test_data/bundler/golden_image.png"),
