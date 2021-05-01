@@ -14,6 +14,7 @@ export async function runInPuppeteer(
     sourceFile,
     binFile,
     rootDir,
+    true,
     options
   );
   await execute(binFile, outputFiles.rootDir, port, args);

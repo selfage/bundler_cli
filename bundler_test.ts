@@ -1,11 +1,9 @@
-import express = require("express");
 import fs = require("fs");
-import http = require("http");
-import path = require("path");
-import puppeteer = require("puppeteer");
 import { OutputFiles, bundleForBrowser, bundleForNode } from "./bundler";
+import { execute } from "./puppeteer_executor";
 import {
   MatchFn,
+  assert,
   assertThat,
   containStr,
   eq,
@@ -16,58 +14,6 @@ import { SpawnSyncReturns, spawnSync } from "child_process";
 
 function executeSync(jsFile: string): SpawnSyncReturns<string> {
   return spawnSync("node", [jsFile]);
-}
-
-class PuppeteerExecutor {
-  private static HOST_NAME = "localhost";
-  private static PORT = 8000;
-  private static HOST_URL =
-    `http://${PuppeteerExecutor.HOST_NAME}:` + `${PuppeteerExecutor.PORT}`;
-
-  private server: http.Server;
-  private browser: puppeteer.Browser;
-  private tempBinFile: string;
-
-  public async execute(
-    rootDir: string,
-    binFile: string,
-    preExecute: (page: puppeteer.Page) => void
-  ): Promise<puppeteer.Page> {
-    this.tempBinFile = path.join(rootDir, "selfage_temp_bin.html");
-    await fs.promises.writeFile(
-      this.tempBinFile,
-      `<html>
-  <body>
-    <script type="text/javascript" src="/${binFile}"></script>
-  </body>
-</html>`
-    );
-    let app = express();
-    app.use("/", express.static(rootDir));
-    this.server = http.createServer(app);
-    await new Promise<void>((resolve) => {
-      this.server.listen(
-        { host: PuppeteerExecutor.HOST_NAME, port: PuppeteerExecutor.PORT },
-        () => resolve()
-      );
-    });
-    this.browser = await puppeteer.launch();
-    let page = await this.browser.newPage();
-    preExecute(page);
-    await page.goto(`${PuppeteerExecutor.HOST_URL}/selfage_temp_bin.html`);
-    return page;
-  }
-
-  public async clean(): Promise<void> {
-    let closeServerPromise = new Promise<void>((resolve) => {
-      this.server.close(() => resolve());
-    });
-    await Promise.all([
-      this.browser.close(),
-      closeServerPromise,
-      fs.promises.unlink(this.tempBinFile),
-    ]);
-  }
 }
 
 function eqOutputFiles(expected: OutputFiles): MatchFn<OutputFiles> {
@@ -152,7 +98,7 @@ TEST_RUNNER.run({
         assertThat(
           executeSync("./test_data/bundler/stack_trace_bin.js").stderr,
           containStr("test_data/bundler/stack_trace.ts"),
-          "output"
+          "error output"
         );
 
         // Cleanup
@@ -306,28 +252,15 @@ TEST_RUNNER.run({
           }),
           "outputFiles"
         );
-        let executor = new PuppeteerExecutor();
-        let errorPromise: Promise<string>;
-        await executor.execute(
-          outputFiles.rootDir,
-          outputFiles.binFile,
-          (page) => {
-            errorPromise = new Promise<string>((resolve) => {
-              page.on("pageerror", (err) => {
-                resolve(err.message);
-              });
-            });
-          }
-        );
+        let outputCollection = await execute(outputFiles.binFile);
         assertThat(
-          await errorPromise,
-          containStr("test_data/bundler/stack_trace.ts"),
-          "output"
+          outputCollection.error,
+          eqArray([containStr("test_data/bundler/stack_trace.ts")]),
+          "error output"
         );
 
         // Cleanup
         await Promise.all([
-          executor.clean(),
           fs.promises.unlink("./test_data/bundler/stack_trace.js"),
           fs.promises.unlink("./test_data/bundler/stack_trace_bin.js"),
         ]);
@@ -357,38 +290,18 @@ TEST_RUNNER.run({
           }),
           "outputFiles"
         );
-        let executor = new PuppeteerExecutor();
-        let errors = new Array<string>();
-        let page = await executor.execute(
-          outputFiles.rootDir,
-          outputFiles.binFile,
-          (page) => {
-            page.on("console", (msg) => {
-              if (msg.type() === "error") {
-                errors.push(msg.text());
-              }
-            });
-            page.on("pageerror", (err) => {
-              errors.push(err.message);
-            });
-          }
-        );
-        let pageContent = await page.content();
-        assertThat(
-          pageContent,
-          containStr('src="/bundler/inside/sample.jpg"'),
-          "img src"
-        );
-        assertThat(
-          pageContent,
-          containStr('class="other">11</div>'),
-          "foo div"
-        );
-        assertThat(errors, eqArray([]), "no page errors");
+        await execute(outputFiles.binFile, outputFiles.rootDir);
+        let [image1, image2] = await Promise.all([
+          fs.promises.readFile("./test_data/bundler/rendered_image.png"),
+          fs.promises.readFile("./test_data/bundler/golden_image.png"),
+        ]);
+        // If failed, compare the two iamges and either make rendered_image.png
+        // the new golden_image.png, or delete rendered_image.png.
+        assert(image1.equals(image2), "image1 to be the same as image2", "not");
 
         // Cleanup
         await Promise.all([
-          executor.clean(),
+          fs.promises.unlink("./test_data/bundler/rendered_image.png"),
           fs.promises.unlink("./test_data/bundler/base.js"),
           fs.promises.unlink("./test_data/bundler/use_image.js"),
           fs.promises.unlink("./test_data/bundler/use_image_bin.js"),
