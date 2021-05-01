@@ -19,8 +19,8 @@ export interface OutputCollection {
 }
 
 export async function execute(
-  binFile: string,
-  rootDir = ".",
+  binFile: string, // relative to '.'
+  rootDir = ".", // relative to '.'
   port = 8000,
   outputToConsole = false,
   args = new Array<string>()

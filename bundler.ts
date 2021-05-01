@@ -16,23 +16,23 @@ declare module "*.{ext}" {
 `;
 
 export interface CommonBundleOptions {
-  tsconfigFile?: string;
-  environmentFile?: string;
+  tsconfigFile?: string; // relative to '.'
+  environmentFile?: string; // relative to '.'
   assetExts?: Array<string>;
-  packageJsonFile?: string;
+  packageJsonFile?: string; // relative to '.'
   skipMinify?: boolean;
   debug?: boolean;
 }
 
 export interface OutputFiles {
-  rootDir: string;
-  binFile: string;
-  assetFiles: Array<string>;
+  rootDir: string; // relative to '.'
+  binFile: string; // relative to `rootDir`
+  assetFiles: Array<string>; // relative to `rootDir`
 }
 
 export async function bundleForNode(
-  sourceFile: string,
-  outputFile: string,
+  sourceFile: string, // relative to '.'
+  outputFile: string, // relative to '.'
   options?: CommonBundleOptions
 ): Promise<OutputFiles> {
   let rootDir = path.dirname(outputFile);
@@ -49,8 +49,8 @@ export async function bundleForNode(
 }
 
 export async function bundleForBrowser(
-  sourceFile: string,
-  outputFile: string,
+  sourceFile: string, // relative to '.'
+  outputFile: string, // relative to '.'
   rootDir = ".",
   options?: CommonBundleOptions
 ): Promise<OutputFiles> {
@@ -90,9 +90,9 @@ class AssetTransformer extends stream.Transform {
 }
 
 export async function bundle(
-  sourceFile: string,
-  outputFile: string,
-  outputRootDir: string,
+  sourceFile: string, // relative to '.'
+  outputFile: string, // relative to '.'
+  outputRootDir: string, // relative to '.'
   inNode: boolean,
   transformerFactoryFn: (
     file: string,

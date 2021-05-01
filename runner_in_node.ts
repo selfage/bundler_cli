@@ -3,7 +3,7 @@ import { stripFileExtension } from "@selfage/cli/io_helper";
 import { spawn } from "child_process";
 
 export async function runInNode(
-  sourceFile: string,
+  sourceFile: string, // relative to '.'
   options?: CommonBundleOptions,
   args = new Array<string>()
 ): Promise<void> {
