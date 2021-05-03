@@ -1,8 +1,10 @@
 import fs = require("fs");
-import { OutputFiles, bundleForBrowser, bundleForNode } from "./bundler";
-import { execute } from "./puppeteer_executor";
 import {
-  MatchFn,
+  bundleForBrowserReturnAssetFiles,
+  bundleForNodeReturnAssetFiles,
+} from "./bundler";
+import { executeInPuppeteer } from "./puppeteer_executor";
+import {
   assert,
   assertThat,
   containStr,
@@ -16,18 +18,6 @@ function executeSync(jsFile: string): SpawnSyncReturns<string> {
   return spawnSync("node", [jsFile]);
 }
 
-function eqOutputFiles(expected: OutputFiles): MatchFn<OutputFiles> {
-  return (actual) => {
-    assertThat(actual.rootDir, eq(expected.rootDir), "roorDir");
-    assertThat(actual.binFile, eq(expected.binFile), "binFile");
-    assertThat(
-      actual.assetFiles,
-      eqArray(expected.assetFiles.map((file) => eq(file))),
-      "assetFiles"
-    );
-  };
-}
-
 TEST_RUNNER.run({
   name: "BundlerTest",
   cases: [
@@ -35,7 +25,7 @@ TEST_RUNNER.run({
       name: "BundleTwoFilesForNode",
       execute: async () => {
         // Execute
-        await bundleForNode(
+        await bundleForNodeReturnAssetFiles(
           "./test_data/bundler/two_file.ts",
           "./test_data/bundler/two_file_bin.ts",
           { tsconfigFile: "./test_data/bundler/tsconfig.json" }
@@ -60,7 +50,7 @@ TEST_RUNNER.run({
       name: "BundleTwoFilesForNodeSkipMinify",
       execute: async () => {
         // Execute
-        await bundleForNode(
+        await bundleForNodeReturnAssetFiles(
           "./test_data/bundler/two_file.ts",
           "./test_data/bundler/two_file_bin.ts",
           {
@@ -88,7 +78,7 @@ TEST_RUNNER.run({
       name: "StackTraceIncludeTsFileInNode",
       execute: async () => {
         // Execute
-        await bundleForNode(
+        await bundleForNodeReturnAssetFiles(
           "./test_data/bundler/stack_trace.ts",
           "./test_data/bundler/stack_trace_bin.js",
           { tsconfigFile: "./test_data/bundler/tsconfig.json", debug: true }
@@ -112,7 +102,7 @@ TEST_RUNNER.run({
       name: "OnlyExecuteCodeUnderDevEnvironment",
       execute: async () => {
         // Execute
-        await bundleForNode(
+        await bundleForNodeReturnAssetFiles(
           "./test_data/bundler/try_environment.ts",
           "./test_data/bundler/try_environment_bin.js",
           {
@@ -141,7 +131,7 @@ TEST_RUNNER.run({
       name: "OnlyExecuteCodeUnderProdEnvironment",
       execute: async () => {
         // Execute
-        await bundleForNode(
+        await bundleForNodeReturnAssetFiles(
           "./test_data/bundler/try_environment.ts",
           "./test_data/bundler/try_environment_bin.js",
           {
@@ -170,7 +160,7 @@ TEST_RUNNER.run({
       name: "BundleAssetsInNode",
       execute: async () => {
         // Execute
-        let outputFiles = await bundleForNode(
+        let assetFiles = await bundleForNodeReturnAssetFiles(
           "./test_data/bundler/use_text.ts",
           "./test_data/bundler/use_text_bin.ts",
           {
@@ -186,13 +176,9 @@ TEST_RUNNER.run({
           "output"
         );
         assertThat(
-          outputFiles,
-          eqOutputFiles({
-            rootDir: "./test_data/bundler",
-            binFile: "use_text_bin.js",
-            assetFiles: ["./inside/some.txt"],
-          }),
-          "outputFiles"
+          assetFiles,
+          eqArray([eq("test_data/bundler/inside/some.txt")]),
+          "asset files"
         );
 
         // Cleanup
@@ -207,7 +193,7 @@ TEST_RUNNER.run({
       name: "BundleAssetsWithPackageJsonInNode",
       execute: async () => {
         // Execute
-        await bundleForNode(
+        await bundleForNodeReturnAssetFiles(
           "./test_data/bundler/use_text.ts",
           "./test_data/bundler/use_text_bin.ts",
           {
@@ -235,7 +221,7 @@ TEST_RUNNER.run({
       name: "StackTraceIncludeTsFileInBrowser",
       execute: async () => {
         // Execute
-        let outputFiles = await bundleForBrowser(
+        let assetFiles = await bundleForBrowserReturnAssetFiles(
           "./test_data/bundler/stack_trace.ts",
           "./test_data/bundler/stack_trace_bin.js",
           undefined,
@@ -243,16 +229,8 @@ TEST_RUNNER.run({
         );
 
         // Verify
-        assertThat(
-          outputFiles,
-          eqOutputFiles({
-            rootDir: ".",
-            binFile: "test_data/bundler/stack_trace_bin.js",
-            assetFiles: [],
-          }),
-          "outputFiles"
-        );
-        let outputCollection = await execute(
+        assertThat(assetFiles, eqArray([]), "asset files");
+        let outputCollection = await executeInPuppeteer(
           "./test_data/bundler/stack_trace_bin.js"
         );
         assertThat(
@@ -272,9 +250,9 @@ TEST_RUNNER.run({
       name: "BundleAssetsWithRootDirInBrowser",
       execute: async () => {
         // Execute
-        let outputFiles = await bundleForBrowser(
-          "./test_data/bundler/use_image.ts",
-          "./test_data/bundler/use_image_bin.ts",
+        let assetFiles = await bundleForBrowserReturnAssetFiles(
+          "./bundler/use_image.ts",
+          "./bundler/use_image_bin.ts",
           "./test_data",
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
@@ -284,18 +262,11 @@ TEST_RUNNER.run({
 
         // Verify
         assertThat(
-          outputFiles,
-          eqOutputFiles({
-            rootDir: "./test_data",
-            binFile: "bundler/use_image_bin.js",
-            assetFiles: ["./bundler/inside/sample.jpg"],
-          }),
-          "outputFiles"
+          assetFiles,
+          eqArray([eq("bundler/inside/sample.jpg")]),
+          "asset files"
         );
-        await execute(
-          "./test_data/bundler/use_image_bin.js",
-          outputFiles.rootDir
-        );
+        await executeInPuppeteer("./bundler/use_image_bin.js", "./test_data");
         let [image1, image2] = await Promise.all([
           fs.promises.readFile("./test_data/bundler/rendered_image.png"),
           fs.promises.readFile("./test_data/bundler/golden_image.png"),

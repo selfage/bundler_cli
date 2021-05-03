@@ -1,4 +1,4 @@
-import imagePath from "./inside/sample.jpg";
+import imagePath = require("./inside/sample.jpg");
 import { EXIT_CMD, SCREENSHOT_CMD } from "../../puppeteer_executor_commands";
 import { foo } from "./base";
 import { E } from "@selfage/element/factory";

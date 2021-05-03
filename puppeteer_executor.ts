@@ -18,14 +18,14 @@ export interface OutputCollection {
   error: Array<string>;
 }
 
-export async function execute(
-  binFile: string, // relative to '.'
+export async function executeInPuppeteer(
+  binFile: string, // relative to `rootDir`
   rootDir = ".", // relative to '.'
+  outputToConsole = true,
   port = 8000,
-  outputToConsole = false,
   args = new Array<string>()
 ): Promise<OutputCollection> {
-  let binJsFile = path.relative(rootDir, stripFileExtension(binFile) + ".js");
+  let binJsFile = stripFileExtension(binFile) + ".js";
   let tempBinFile = path.join(rootDir, "selfage_temp_bin.html");
   let writeFilePromise = fs.promises.writeFile(
     tempBinFile,
@@ -60,7 +60,7 @@ export async function execute(
         outputCollection.log.push(msg.text());
 
         if (msg.text() === EXIT_CMD) {
-          await shutDown(server, browser, tempBinFile);
+          await shutDown(browser, server, tempBinFile);
           resolve();
         } else {
           let matched = msg.text().match(SCREENSHOT_CMD);
@@ -93,7 +93,7 @@ export async function execute(
       }
     });
     page.on("pageerror", async (err) => {
-      await shutDown(server, browser, tempBinFile);
+      await shutDown(browser, server, tempBinFile);
       if (outputToConsole) {
         console.error(err.message);
       }
@@ -101,7 +101,11 @@ export async function execute(
       resolve();
     });
   });
-  page.goto(`http://${HOST_NAME}:${port}/selfage_temp_bin.html`);
+  try {
+    await page.goto(`http://${HOST_NAME}:${port}/selfage_temp_bin.html`);
+  } catch (e) {
+    console.error(e.stack);
+  }
   await executePromise;
   return outputCollection;
 }
@@ -131,15 +135,15 @@ async function serveFile(
 }
 
 async function shutDown(
-  server: http.Server,
   browser: puppeteer.Browser,
+  server: http.Server,
   tempBinFile: string
 ): Promise<void> {
   await Promise.all([
+    browser.close(),
     new Promise<void>((resolve) => {
       server.close(() => resolve());
     }),
-    browser.close(),
     fs.promises.unlink(tempBinFile),
   ]);
 }

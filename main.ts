@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 import packageConfig from "./package.json";
-import { bundleForBrowser, bundleForNode } from "./bundler";
-import { execute } from "./puppeteer_executor";
+import {
+  CommonBundleOptions,
+  bundleForBrowserReturnAssetFiles,
+  bundleForNodeReturnAssetFiles,
+} from "./bundler";
+import { executeInPuppeteer } from "./puppeteer_executor";
 import { runInNode } from "./runner_in_node";
 import { runInPuppeteer } from "./runner_in_puppeteer";
 import { Command } from "commander";
@@ -32,12 +36,12 @@ let TSCONFIG_FILE_OPTION = [
 ];
 let ROOT_DIR_OPTION = [
   "-r, --root-dir <rootDir>",
-  `The root directory that you want to your web server from. Asset paths are ` +
+  `The root directory that you want to your web server from. Asset files are ` +
     `relative to it. If not provided, it will be the current working directory.`,
 ];
 let PORT_OPTION = [
   "-p, --port <port>",
-  `The port number to start your local server.`,
+  `The port number to start your local server. Default to 8000.`,
 ];
 
 function main(): void {
@@ -57,7 +61,11 @@ function main(): void {
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .action(async (sourceFile, outputFile, options) => {
-      await bundleForNode(sourceFile, outputFile, options);
+      await bundleForNodeReturnAssetFiles(
+        sourceFile,
+        outputFile,
+        options as CommonBundleOptions
+      );
     });
   program
     .command("runInNode <sourceFile>")
@@ -74,7 +82,7 @@ function main(): void {
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .action((sourceFile, options, extraArgs) =>
-      runInNode(sourceFile, options, extraArgs)
+      runInNode(sourceFile, options as CommonBundleOptions, extraArgs)
     );
   program
     .command("bundleForBrowser <sourceFile> <outputFile>")
@@ -82,7 +90,8 @@ function main(): void {
     .description(
       `Compile and bundle from a TypeScript source file that can be run in ` +
         `Browser. Both file exts can be neglected and are always fixed as ` +
-        `.ts and .js respectively.`
+        `.ts and .js respectively. Both file paths need to be relative to ` +
+        `--root-dir.`
     )
     .option(ROOT_DIR_OPTION[0], ROOT_DIR_OPTION[1])
     .option(ENVIRONMENT_FILE_OPTION[0], ENVIRONMENT_FILE_OPTION[1])
@@ -91,7 +100,12 @@ function main(): void {
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .action(async (sourceFile, outputFile, options) => {
-      await bundleForBrowser(sourceFile, outputFile, options.rootDir, options);
+      await bundleForBrowserReturnAssetFiles(
+        sourceFile,
+        outputFile,
+        options.rootDir as string,
+        options as CommonBundleOptions
+      );
     });
   program
     .command("runInPuppeteer <sourceFile>")
@@ -99,8 +113,9 @@ function main(): void {
     .description(
       `Compile and bundle from a TypeScript source file, and run the bundled ` +
         `JavaScript file in Puppeteer, i.e., headless Chrome. The file ext ` +
-        `can be neglected and is always fixed as .ts. Pass through arguments ` +
-        `to the exectuable file after --.`
+        `can be neglected and is always fixed as .ts. The file path needs to ` +
+        `be relative to --root-dir. Pass through arguments to the exectuable ` +
+        `file after --.`
     )
     .option(ROOT_DIR_OPTION[0], ROOT_DIR_OPTION[1])
     .option(ENVIRONMENT_FILE_OPTION[0], ENVIRONMENT_FILE_OPTION[1])
@@ -112,9 +127,9 @@ function main(): void {
     .action((sourceFile, options, extraArgs) =>
       runInPuppeteer(
         sourceFile,
-        options.rootDir,
-        options.port,
-        options,
+        options.rootDir as string,
+        options.port as number,
+        options as CommonBundleOptions,
         extraArgs
       )
     );
@@ -124,13 +139,20 @@ function main(): void {
     .description(
       `Execute the presumably bundled JavaScript file in Puppeteer, i.e., ` +
         `headless Chrome. The file ext can be neglected and is always fixed ` +
-        `as .js. Pass through arguments to the exectuable file after --.`
+        `as .js. The file path needs to be relative to --root-dir. Pass ` +
+        `through arguments to the exectuable file after --.`
     )
     .option(ROOT_DIR_OPTION[0], ROOT_DIR_OPTION[1])
     .option(PORT_OPTION[0], PORT_OPTION[1], (value) => parseInt(value, 10))
-    .action((binFile, options, extraArgs) =>
-      execute(binFile, options.rootDir, options.port, extraArgs)
-    );
+    .action(async (binFile, options, extraArgs) => {
+      await executeInPuppeteer(
+        binFile,
+        options.rootDir as string,
+        true,
+        options.port,
+        extraArgs
+      );
+    });
   program.parse();
 }
 

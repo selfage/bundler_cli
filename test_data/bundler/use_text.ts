@@ -1,6 +1,6 @@
+import textPath = require("./inside/some.txt");
 import fs = require("fs");
 import path = require("path");
-import textPath from "./inside/some.txt";
 import { foo } from "./base";
 
 let text = fs.readFileSync(textPath);
