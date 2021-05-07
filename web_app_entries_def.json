@@ -1,0 +1,28 @@
+[{
+  "message": {
+    "name": "WebAppEntry",
+    "fields": [{
+      "name": "ts",
+      "type": "string",
+      "comment": "The source TypeScript file, relative to the directory of the config file. File ext can be neglected."
+    }, {
+      "name": "bin",
+      "type": "string",
+      "comment": "The output file name after bundling, relative to the directory of the config file. File ext can be neglectd. A JS file and an HTML file are expected to be generated."
+    }]
+  }
+}, {
+  "message": {
+    "name": "WebAppEntries",
+    "fields": [{
+      "name": "entries",
+      "type": "WebAppEntry",
+      "isArray": true
+    }, {
+      "name": "extraAssets",
+      "type": "string",
+      "isArray": true,
+      "comment": "Extra asset files that need to be copied to and served from a new directory, such as favicon.ico. Asset files that are imported by entry files don't need to be included here."
+    }]
+  }
+}]

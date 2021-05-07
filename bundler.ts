@@ -7,7 +7,6 @@ import UglifyJS = require("uglify-js");
 import { compile } from "@selfage/cli/build/compiler";
 import { stripFileExtension } from "@selfage/cli/io_helper";
 
-let TEMP_DECLARATION_FILE = "./selfage_asset_ext_temp.d.ts";
 // Export as a commonjs module.
 let TEMP_DECLARATION_FILE_CONTENT_TEMPLATE = `
 declare module "*.{ext}" {
@@ -37,8 +36,8 @@ export async function bundleForNodeReturnAssetFiles(
     path.relative(rootDir, outputFile),
     rootDir,
     true,
-    (file, rootDir, outputAssetFiles) => {
-      return new AssetTransformer(file, rootDir, outputAssetFiles);
+    (absoluteFile, rootDir, outputAssetFiles) => {
+      return new AssetTransformer(absoluteFile, rootDir, outputAssetFiles);
     },
     options
   );
@@ -57,8 +56,8 @@ export async function bundleForBrowserReturnAssetFiles(
     outputFile,
     rootDir,
     false,
-    (file, rootDir, outputAssetFiles) => {
-      return new AssetTransformer(file, rootDir, outputAssetFiles);
+    (absoluteFile, rootDir, outputAssetFiles) => {
+      return new AssetTransformer(absoluteFile, rootDir, outputAssetFiles);
     },
     options
   );
@@ -66,7 +65,7 @@ export async function bundleForBrowserReturnAssetFiles(
 
 class AssetTransformer extends stream.Transform {
   public constructor(
-    private absoluteFilePath: string,
+    private absoluteFile: string,
     private rootDir: string,
     private outputAssetFilePaths: Array<string>
   ) {
@@ -75,7 +74,7 @@ class AssetTransformer extends stream.Transform {
         callback();
       },
       flush: (callback) => {
-        let relativePath = path.relative(this.rootDir, this.absoluteFilePath);
+        let relativePath = path.relative(this.rootDir, this.absoluteFile);
         this.outputAssetFilePaths.push(relativePath);
         callback(
           undefined,
@@ -94,7 +93,7 @@ export async function bundle(
   rootDir: string, // relative to '.'
   inNode: boolean,
   transformerFactoryFn: (
-    file: string,
+    absoluteFile: string,
     rootDir: string,
     outputAssetFiles: Array<string>
   ) => stream.Transform,
@@ -110,11 +109,15 @@ export async function bundle(
     ).assetExts;
   }
 
-  await compileWithAssets(
-    path.join(rootDir, sourceFile),
-    options.tsconfigFile,
-    assetExts
-  );
+  if (!assetExts) {
+    await compile(path.join(rootDir, sourceFile), options.tsconfigFile);
+  } else {
+    await compileWithAssets(
+      path.join(rootDir, sourceFile),
+      assetExts,
+      options.tsconfigFile
+    );
+  }
   if (options.environmentFile) {
     await compile(options.environmentFile, options.tsconfigFile);
   }
@@ -173,25 +176,19 @@ export async function bundle(
 
 async function compileWithAssets(
   sourceFile: string, // relative to '.'
-  tsconfigFile?: string, // relative to '.'
-  assetExts?: Array<string>
+  assetExts: Array<string>,
+  tsconfigFile?: string // relative to '.'
 ): Promise<void> {
-  let supFiles = new Array<string>();
-  if (assetExts) {
-    let tempFileContent = new Array<string>();
-    for (let ext of assetExts) {
-      tempFileContent.push(
-        TEMP_DECLARATION_FILE_CONTENT_TEMPLATE.replace("{ext}", ext)
-      );
-    }
-    await fs.promises.writeFile(
-      TEMP_DECLARATION_FILE,
-      tempFileContent.join("")
+  let tempFileContent = new Array<string>();
+  for (let ext of assetExts) {
+    tempFileContent.push(
+      TEMP_DECLARATION_FILE_CONTENT_TEMPLATE.replace("{ext}", ext)
     );
-    supFiles.push(TEMP_DECLARATION_FILE);
   }
-  await compile(sourceFile, tsconfigFile, supFiles);
-  if (assetExts) {
-    await fs.promises.unlink(TEMP_DECLARATION_FILE);
-  }
+  let tempFile = `selfage_assets_tmp_${Date.now().toString(16)}_${Math.floor(
+    Math.random() * 4096
+  ).toString(16)}.d.ts`;
+  await fs.promises.writeFile(tempFile, tempFileContent.join(""));
+  await compile(sourceFile, tsconfigFile, [tempFile]);
+  await fs.promises.unlink(tempFile);
 }
