@@ -5,7 +5,7 @@ import path = require("path");
 import puppeteer = require("puppeteer");
 import stream = require("stream");
 import util = require("util");
-import { EXIT_CMD, SCREENSHOT_CMD } from "./puppeteer_executor_commands";
+import { EXIT, SCREENSHOT } from "./puppeteer_executor_apis";
 import { stripFileExtension } from "@selfage/cli/io_helper";
 let pipeline = util.promisify(stream.pipeline);
 
@@ -59,13 +59,12 @@ export async function executeInPuppeteer(
         }
         outputCollection.log.push(msg.text());
 
-        if (msg.text() === EXIT_CMD) {
+        if (msg.text() === EXIT) {
           await shutDown(browser, server, tempBinFile);
           resolve();
         } else {
-          let matched = msg.text().match(SCREENSHOT_CMD);
-          if (matched) {
-            let file = msg.text().replace(SCREENSHOT_CMD, "");
+          if (msg.text().startsWith(SCREENSHOT)) {
+            let file = msg.text().replace(SCREENSHOT, "");
             let pngFile = path.join(rootDir, stripFileExtension(file) + ".png");
             page.screenshot({ path: pngFile, omitBackground: true });
           }

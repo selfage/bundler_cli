@@ -18,7 +18,7 @@ export let DEFAULT_BUNDLED_RESOURCES_FILE = "web_app_resources.json";
 export async function bundleWebAppsAndCopyFiles(
   rootDir = ".", // relative to '.'
   entriesConfigFile = DEFAULT_ENTRIES_CONFIG_FILE, // relative to `rootDir`
-  outDir = ".", // relative to '.'
+  outDir = rootDir, // relative to '.'
   bundledResourcesFile = DEFAULT_BUNDLED_RESOURCES_FILE, // relative to `rootDir`
   options?: CommonBundleOptions
 ): Promise<void> {

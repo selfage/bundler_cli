@@ -1,5 +1,5 @@
 import imagePath = require("./inside/sample.jpg");
-import { EXIT_CMD, SCREENSHOT_CMD } from "../../puppeteer_executor_commands";
+import { EXIT, SCREENSHOT } from "../../puppeteer_executor_apis";
 import { foo } from "./base";
 import { E } from "@selfage/element/factory";
 
@@ -16,7 +16,7 @@ async function main() {
   await new Promise<void>((resolve) => setTimeout(resolve, 500));
 
   let screenshotImage = __dirname + "/rendered_image.png";
-  console.log(SCREENSHOT_CMD + screenshotImage);
+  console.log(SCREENSHOT + screenshotImage);
   while (true) {
     let response = await fetch(screenshotImage);
     if (response.ok) {
@@ -24,7 +24,7 @@ async function main() {
     }
   }
 
-  console.log(EXIT_CMD);
+  console.log(EXIT);
 }
 
 main();

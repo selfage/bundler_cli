@@ -19,7 +19,7 @@ import "source-map-support/register";
 let ENVIRONMENT_FILE_OPTION = [
   "-e, --environment-file <environmentFile>",
   `An extra TypeScript file to be bundled together with the source file, ` +
-    `relative to the current working directory. Typically such file ` +
+    `always relative to the current working directory. Typically such file ` +
     `contains global variables for a particular environment such as PROD or ` +
     `DEV, and it's not imported by the source file but assumed to be present ` +
     `at runtime.`,
@@ -27,19 +27,22 @@ let ENVIRONMENT_FILE_OPTION = [
 let ASSET_EXT_OPTION = [
   "-a, --asset-exts <assetExts...>",
   `A list of file exts that are treated as assets. E.g., with ` +
-    `"-a .png .jpg", you could \`import imagePath from './image.png'\` which ` +
-    `enables \`<img src={imagePath}>\` or \`fs.readFileSync(imagePath)\`. If ` +
-    `not provided, it will look for \`assetExts\` field in ./package.json ` +
-    `which should be a list of strings.`,
+    `"-a .png .jpg", you could \`import imagePath = require('./image.png')\` ` +
+    `which enables \`<img src={imagePath}>\` or ` +
+    `\`fs.readFileSync(imagePath)\`. If not provided, it will look for ` +
+    `\`assetExts\` field in ./package.json which should be a list of strings.`,
 ];
 let SKIP_MINIFY_OPTION = [
   "-s, --skip-minify",
   `Skip minification when bundling. Useful for inspecting bundling issues.`,
 ];
-let DEBUG_OPTION = ["--debug", "Include inline source map and inline source."];
+let DEBUG_OPTION = [
+  "-d, --debug",
+  "Include inline source map and inline source.",
+];
 let TSCONFIG_FILE_OPTION = [
   "-c, --tsconfig-file <file>",
-  `The file path to tsconfig.json, relative to the current working ` +
+  `The file path to tsconfig.json, always relative to the current working ` +
     `directory. If not provided, it will try to look for it at the current ` +
     `working directory.`,
 ];
@@ -167,24 +170,26 @@ function main(): void {
     .command("bundleWebApps")
     .alias("bwa")
     .description(
-      `Bundle all TypeScript source files based on <entriesConfig>, write a ` +
-        `list of bundled JS files and imported asset files as well as extra ` +
-        `asset files to <bundledResources>, and finally copy those files ` +
-        `into <outDir> where your web server can be started.`
+      `Bundle all TypeScript source files based on <entriesConfig>, generate `+
+        `HTML files pointing to the bundled JS files respectively, compress `+
+        `them with Gzip, collect a list of all bundled JS & HTML file paths `+
+        `and asset file paths to <bundledResources>, and finally copy those `+
+        `files into <outDir> where your web server can be started.`
     )
     .option(ROOT_DIR_OPTION[0], ROOT_DIR_OPTION[1])
     .option(
       "-m, --entries-config <entriesConfig>",
       `A config file to specify a list of entry files, each of which should ` +
-        `be as a single page applications. The file path needs to be ` +
-        `relative to <rootDir>. See <> for its schema. If not provided, it ` +
-        `will look for <rootDir>/${DEFAULT_ENTRIES_CONFIG_FILE}.`
+        `be a single page application. The file path needs to be relative to ` +
+        `<rootDir>. See https://www.npmjs.com/package/@selfage/bundler_cli ` +
+        `for its schema. If not provided, it will look for ` +
+        `<rootDir>/${DEFAULT_ENTRIES_CONFIG_FILE}.`
     )
     .option(
       "-o, --out-dir <outDir>",
       `The output directory to where files will be copied. If not provided, ` +
-        `it will be the current working directory. When <outDir> equals ` +
-        `<rootDir>, no copies happen.`
+        `it will be the same as <rootDir>. When <outDir> equals <rootDir>, no ` +
+        `copies happen.`
     )
     .option(
       "-b, --bundled-resources <bundledResources>",
