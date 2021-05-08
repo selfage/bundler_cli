@@ -38,7 +38,8 @@ Options:
 $ bundage bfb -h
 Usage: bundage bundleForBrowser|bfb [options] <sourceFile> <outputFile>
 
-Compile and bundle from a TypeScript source file that can be run in Browser. Both file exts can be neglected and are always fixed as .ts and .js respectively. Both file paths need to be relative to <rootDir>.
+Compile and bundle from a TypeScript source file that can be run in Browser. Both file exts can be neglected and are always fixed as .ts and .js respectively.
+Both file paths need to be relative to <rootDir>.
 
 Options:
   -r, --root-dir <rootDir>                  The root directory that source file, output file, and asset files should be relative to. If not
@@ -70,7 +71,8 @@ You can bundle and then run the bundled JS file in Node in one command.
 $ bundage nrun -h
 Usage: bundage runInNode|nrun [options] <sourceFile>
 
-Compile and bundle from a TypeScript source file, and run the bundled JavaScript file in Node. The file ext can be neglected and is always fixed as .ts. Pass through arguments to the exectuable file after --.
+Compile and bundle from a TypeScript source file, and run the bundled JavaScript file in Node. The file ext can be neglected and is always fixed as .ts.
+Pass through arguments to the exectuable file after --.
 
 Options:
   -e, --environment-file <environmentFile>  An extra TypeScript file to be bundled together with the source file, always relative to the current
@@ -94,7 +96,8 @@ Options:
 $ bundage prun -h
 Usage: bundage runInPuppeteer|prun [options] <sourceFile>
 
-Compile and bundle from a TypeScript source file, and run the bundled JavaScript file in Puppeteer, i.e., headless Chrome. The file ext can be neglected and is always fixed as .ts. The file path needs to be relative to <rootDir>. Pass through arguments to the exectuable file after --.
+Compile and bundle from a TypeScript source file, and run the bundled JavaScript file in Puppeteer, i.e., headless Chrome. The file ext can be neglected
+and is always fixed as .ts. The file path needs to be relative to <rootDir>. Pass through arguments to the exectuable file after --.
 
 Options:
   -r, --root-dir <rootDir>                  The root directory that source file, output file, and asset files should be relative to. If not
@@ -113,17 +116,18 @@ Options:
   -h, --help                                display help for command
 ```
 
-One use case can be found in [@selfage/puppeteer_test_runner](https://www.npmjs.com/package/@selfage/puppeteer_test_runner), which is assumed to be bundled and run inside Puppeteer environment together with code under test, and issues commands such as "exit" which are handled by `$ bundage prun`. See all available [Puppeteer executor commands](https://github.com/selfage/bundler_cli/blob/main/puppeteer_executor_commands.ts) to control Puppeteer behavior beyond native Browser APIs. 
+One use case can be found in [@selfage/puppeteer_test_runner](https://www.npmjs.com/package/@selfage/puppeteer_test_runner), which is assumed to be bundled and run inside Puppeteer environment together with code under test, and uses APIs such as "exit" which are handled by `$ bundage prun`. See all available [Puppeteer executor APIs](https://github.com/selfage/bundler_cli/blob/main/puppeteer_executor_apis.ts) to control Puppeteer behavior beyond native Browser APIs. 
 
 ## Execute in Puppeteer
 
-A simple variant of `$ bundge prun` is to execute a JS file directly, assuming you bundled it already by either `bundage bfb` or other bundlers. The same set of [Puppeteer executor commands](https://github.com/selfage/bundler_cli/blob/main/puppeteer_executor_commands.ts) is available for your JS/TS file.
+A simple variant of `$ bundge prun` is to execute a JS file directly, assuming you bundled it already by either `bundage bfb` or other bundlers. The same set of [Puppeteer executor APIs](https://github.com/selfage/bundler_cli/blob/main/puppeteer_executor_apis.ts) is available for your JS/TS file.
 
 ```
 $ bundage pexe -h
 Usage: bundage executeInPuppeteer|pexe [options] <binFile>
 
-Execute the presumably bundled JavaScript file in Puppeteer, i.e., headless Chrome. The file ext can be neglected and is always fixed as .js. The file path needs to be relative to <rootDir>. Pass through arguments to the exectuable file after --.
+Execute the presumably bundled JavaScript file in Puppeteer, i.e., headless Chrome. The file ext can be neglected and is always fixed as .js. The file
+path needs to be relative to <rootDir>. Pass through arguments to the exectuable file after --.
 
 Options:
   -r, --root-dir <rootDir>  The root directory that source file, output file, and asset files should be relative to. If not provided, it will be
@@ -142,7 +146,9 @@ After bundling, e.g. you can start [http-server](https://www.npmjs.com/package/h
 $ bundage bwa -h
 Usage: bundage bundleWebApps|bwa [options]
 
-Bundle all TypeScript source files based on <entriesConfig>, generate HTML files pointing to the bundled JS files respectively, compress them with Gzip, collect a list of all bundled JS & HTML file paths and asset file paths to <bundledResources>, and finally copy those files into <outDir> where your web server can be started.
+Bundle all TypeScript source files based on <entriesConfig>, generate HTML files pointing to the bundled JS files respectively, compress them with Gzip,
+collect a list of all bundled JS & HTML file paths and asset file paths to <bundledResources>, and finally copy those files into <outDir> where your web
+server can be started.
 
 Options:
   -r, --root-dir <rootDir>                    The root directory that source file, output file, and asset files should be relative to. If not
@@ -172,7 +178,7 @@ Options:
 
 ## API access
 
-Each subcommand corresponds to an API as the following.
+Each sub-command corresponds to an API as the following.
 
 `bundleForNode` -> `import { bundleForNodeReturnAssetFiles } from '@selfage/bundler_cli/bundler';`
 
@@ -186,5 +192,5 @@ Each subcommand corresponds to an API as the following.
 
 `bundleWebApps` -> `import { bundleWebAppsAndCopyFiles } from '@selfage/bundler_cli/web_apps_bundler';`
 
-To reference Puppeteer executor commands, you can `import { EXIT_CMD } from '@selfage/bundler_cli/puppeteer_executor_commands';`
+To reference Puppeteer executor APIs, you can `import { EXIT } from '@selfage/bundler_cli/puppeteer_executor_apis';`
 
