@@ -1,6 +1,6 @@
 {
   "name": "@selfage/bundler_cli",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "CLI for bundling and running bundled frontend or backend TypeScript files.",
   "repository": {
     "type": "git",
@@ -9,11 +9,11 @@
   "keywords": [
     "Build",
     "Compile",
-    "Descriptor",
     "Browserify",
     "Uglify",
     "Bundle",
-    "Metaprogramming",
+    "Puppeteer",
+    "Browser",
     "TypeScript"
   ],
   "author": "Yuxuan Xie <teststaybaka@gmail.com> (http://www.yuxuanxie.com)",
