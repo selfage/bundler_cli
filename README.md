@@ -8,7 +8,7 @@
 
 Written in TypeScript and compiled to ES6 with inline source map & source. See [@selfage/tsconfig](https://www.npmjs.com/package/@selfage/tsconfig) for full compiler options. Provides an opinionated bundling tools for developing frontend and backend in TypeScript, especially single page applications (SPAs), powered by `browserify` and `uglify-js`. See sections below for each sub-command and see [commander](https://www.npmjs.com/package/commander) if you are not sure about CLI syntax.
 
-Note that despite TypeScript can compile with various options, we expect you to set `module` to `commonjs` and `moduleResolution` to `node`, due to the use of `browserify`.
+Note that despite TypeScript can compile with various options, we expect you to set `"module": "commonjs"` and `"moduleResolution": "node"`, due to the use of `browserify`.
 
 ## Bundle
 
@@ -57,11 +57,8 @@ Options:
   -h, --help                                display help for command
 ```
 
-See [this answer](https://stackoverflow.com/questions/38906359/create-a-global-variable-in-typescript/67040805#67040805) for how to properly create and use environment file with the help of globalThis.
 
-As explained in the helper manual, you can also `import imagePath = require('./image.png');` with `-a .png .gif .jpg` flag, which doesn't really import the image but only import its path. When bundle for Node, it's the relative path from the bundled output file. When bundle for browser, it's the url path that is expected to be mapped to a relative path from the root directory. E.g., the url path would work if you start a [http-server](https://www.npmjs.com/package/http-server) at `--root-dir`. Now you can load images, CSS files or assets without worrying about their actual URL paths -- they will be inferred at bundling time. Equivalently, you can define `"assetExts": [".png", ".gif", ".jpg"]` in your `package.json` file.
 
-Note that `--debug` doesn't guarantee stack traces will be mapped to TypeScript source code. You could consider using `source-map-support` package. E.g., you can `import 'source-map-support/register';` in your main file.
 
 ## Run in node
 
@@ -116,7 +113,7 @@ Options:
   -h, --help                                display help for command
 ```
 
-One use case can be found in [@selfage/puppeteer_test_runner](https://www.npmjs.com/package/@selfage/puppeteer_test_runner), which is assumed to be bundled and run inside Puppeteer environment together with code under test, and uses APIs such as "exit" which are handled by `$ bundage prun`. See all available [Puppeteer executor APIs](https://github.com/selfage/bundler_cli/blob/main/puppeteer_executor_apis.ts) to control Puppeteer behavior beyond native Browser APIs. 
+One use case can be found in [@selfage/puppeteer_test_runner](https://www.npmjs.com/package/@selfage/puppeteer_test_runner), which is assumed to be bundled and run inside Puppeteer environment together with code under test, and uses APIs such as "exit" which are handled by `$ bundage prun`. See all available [Puppeteer executor APIs](https://github.com/selfage/bundler_cli/blob/main/puppeteer_executor_apis.ts) to control Puppeteer behavior beyond native Browser APIs.
 
 ## Execute in Puppeteer
 
@@ -174,6 +171,35 @@ Options:
   -c, --tsconfig-file <file>                  The file path to tsconfig.json, always relative to the current working directory. If not provided, it
                                               will try to look for it at the current working directory.
   -h, --help                                  display help for command
+```
+
+## Options explained
+
+### Environment file
+
+See [this answer](https://stackoverflow.com/questions/38906359/create-a-global-variable-in-typescript/67040805#67040805) for how to properly create and use environment file with the help of globalThis.
+
+### Asset files
+
+As explained in all helper manuals, you can also `import imagePath = require('./image.png');` with `-a .png .gif .jpg` flag, which doesn't really import the image but only import its path. When bundle for Node, it's the relative path from the bundled output file. When bundle for browser, it's the url path that is expected to be mapped to a relative path from the root directory. E.g., the url path would work if you start a [http-server](https://www.npmjs.com/package/http-server) at `--root-dir`. Now you can load images, CSS files or assets without worrying about their actual URL paths -- they will be inferred at bundling time.
+
+Equivalently, you can define `"assetExts": [".png", ".gif", ".jpg"]` in your `package.json` file to save you from typing the list everytime.
+
+### Debug
+
+Note that `--debug` doesn't guarantee stack traces will be mapped to TypeScript source code. You could consider using `source-map-support` package. E.g., you can `import 'source-map-support/register';` in your main file.
+
+### Pass-through arguments
+
+Pass-through arguments can be accessed in your executable TS/JS file via a global `argv` variable which is an array strings similar to Nodejs's `process.argv` except no Node path and JS file name. See an exmaple below.
+
+```TypeScript
+import '@selfage/puppeteer_executor_argv'; // which defines argv as a global variable.
+
+// argv = ['-a', '10'] with `$ bundage prun my_file -- -a 10`
+// You can use some popular tools to parse arguments.
+parseArg(argv);
+// or parseArg(globalThis.argv);
 ```
 
 ## API access
