@@ -191,7 +191,7 @@ Note that `--debug` doesn't guarantee stack traces will be mapped to TypeScript 
 
 ### Pass-through arguments
 
-Pass-through arguments can be accessed in your executable TS/JS file via a global `argv` variable which is an array strings similar to Nodejs's `process.argv` except no Node path and JS file name. See an exmaple below.
+Pass-through arguments can be accessed in your executable TS/JS file via a global `argv` variable which is an array of strings similar to Nodejs's `process.argv` except no Node path and JS file name. See an exmaple below.
 
 ```TypeScript
 import '@selfage/puppeteer_executor_argv'; // which defines argv as a global variable.
