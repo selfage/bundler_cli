@@ -87,7 +87,7 @@ Options:
 
 ## Run in Puppeteer
 
-[Puppetter](https://www.npmjs.com/package/puppeteer) is a headless Chrome with high-level Node API. You can bundle and run the bundled JS file inside Puppeteer (headless Chrome) environment in one command. The magic is simply that it writes a temp HTML file pointing to the JS file, starts a local server and registers file handlers to serve them. We expect your bundled JS file does all the UI work, creating HTML elements, setting CSS and etc.
+[Puppetter](https://www.npmjs.com/package/puppeteer) is a headless Chrome with high-level Node API. `$ bundage prun` makes it feels like running an exectuable TS/JS file in Node but actually in Puppeteer/headless Chrome environment. It bundles and run the bundled JS file by writing a temp HTML file pointing to the JS file, starting a local server and registering file handlers to serve them. We expect your bundled JS file does all the UI work, creating HTML elements, setting CSS and etc.
 
 ```
 $ bundage prun -h
@@ -117,7 +117,7 @@ One use case can be found in [@selfage/puppeteer_test_runner](https://www.npmjs.
 
 ## Execute in Puppeteer
 
-A simple variant of `$ bundge prun` is to execute a JS file directly, assuming you bundled it already by either `bundage bfb` or other bundlers. The same set of [Puppeteer executor APIs](https://github.com/selfage/bundler_cli/blob/main/puppeteer_executor_apis.ts) is available for your JS/TS file.
+See `$ bundage prun` except it assumes you bundled it already by either `$ bundage bfb` or other bundlers.
 
 ```
 $ bundage pexe -h
