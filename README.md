@@ -113,11 +113,10 @@ Options:
   -h, --help                                display help for command
 ```
 
-One use case can be found in [@selfage/puppeteer_test_runner](https://www.npmjs.com/package/@selfage/puppeteer_test_runner), which is assumed to be bundled and run inside Puppeteer environment together with code under test, and uses APIs such as "exit" which are handled by `$ bundage prun`. See all available [Puppeteer executor APIs](https://github.com/selfage/bundler_cli/blob/main/puppeteer_executor_apis.ts) to control Puppeteer behavior beyond native Browser APIs.
 
 ## Execute in Puppeteer
 
-See `$ bundage prun` except it assumes you bundled it already by either `$ bundage bfb` or other bundlers.
+Used by `$ bundage prun` behind the scene. `$ bundage pexe` assumes you bundled it already by either `$ bundage bfb` or other bundlers.
 
 ```
 $ bundage pexe -h
@@ -202,7 +201,13 @@ parseArg(argv);
 // or parseArg(globalThis.argv);
 ```
 
-## API access
+## Puppeteer executor API
+
+This API is not used normally by importing. It aims to provide an environment-level API, though rather primitive, for TS/JS code running in browser environment. See all available [Puppeteer executor APIs](https://github.com/selfage/bundler_cli/blob/main/puppeteer_executor_apis.ts) to control browser behaviors that are normally prohibited due to security reasons.
+
+One example can be found in [@selfage/puppeteer_test_runner](https://www.npmjs.com/package/@selfage/puppeteer_test_runner), which is assumed to be bundled and run inside Puppeteer environment together with code under test, and calls "exit" API which are then handled by `$ bundage prun` or `$ bundage pexe` to close the current browser page and exit the executor, like Nodejs's `process.exit()`.
+
+## General API access
 
 Each sub-command corresponds to an API as the following.
 
