@@ -5,8 +5,8 @@ import path = require("path");
 import puppeteer = require("puppeteer");
 import stream = require("stream");
 import util = require("util");
-import { EXIT, SCREENSHOT } from "./puppeteer_executor_apis";
 import { stripFileExtension } from "@selfage/cli/io_helper";
+import { DELETE, EXIT, SCREENSHOT } from "@selfage/puppeteer_executor_api";
 let pipeline = util.promisify(stream.pipeline);
 
 let HOST_NAME = "localhost";
@@ -54,20 +54,27 @@ export async function executeInPuppeteer(
   let executePromise = new Promise<void>((resolve) => {
     page.on("console", async (msg) => {
       if (msg.type() === "log") {
-        if (outputToConsole) {
-          console.log(msg.text());
-        }
-        outputCollection.log.push(msg.text());
-
         if (msg.text() === EXIT) {
           await shutDown(browser, server, tempBinFile);
           resolve();
-        } else {
-          if (msg.text().startsWith(SCREENSHOT)) {
-            let file = msg.text().replace(SCREENSHOT, "");
-            let pngFile = path.join(rootDir, stripFileExtension(file) + ".png");
-            page.screenshot({ path: pngFile, omitBackground: true });
+        } else if (msg.text().startsWith(SCREENSHOT)) {
+          let relativePath = msg.text().replace(SCREENSHOT, "");
+          let file = path.join(rootDir, relativePath);
+          await page.screenshot({ path: file, omitBackground: true });
+        } else if (msg.text().startsWith(DELETE)) {
+          let relativePath = msg.text().replace(DELETE, "");
+          let file = path.join(rootDir, relativePath);
+          try {
+            await fs.promises.unlink(file);
+          } catch (e) {
+            // Failure is acceptable.
+            console.log(e);
           }
+        } else {
+          if (outputToConsole) {
+            console.log(msg.text());
+          }
+          outputCollection.log.push(msg.text());
         }
       } else if (msg.type() === "info") {
         if (outputToConsole) {
@@ -103,6 +110,7 @@ export async function executeInPuppeteer(
   try {
     await page.goto(`http://${HOST_NAME}:${port}/selfage_temp_bin.html`);
   } catch (e) {
+    // Sometimes the connection is broken too soon.
     console.error(e.stack);
   }
   await executePromise;

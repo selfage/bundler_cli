@@ -193,7 +193,7 @@ Note that `--debug` doesn't guarantee stack traces will be mapped to TypeScript 
 Pass-through arguments can be accessed in your executable TS/JS file via a global `argv` variable which is an array of strings similar to Nodejs's `process.argv` except no Node path and JS file name. See an exmaple below.
 
 ```TypeScript
-import '@selfage/puppeteer_executor_argv'; // which defines argv as a global variable.
+import '@selfage/bundler_cli/puppeteer_executor_argv'; // import for side effect which declares argv as a global variable.
 
 // argv = ['-a', '10'] with `$ bundage prun my_file -- -a 10`
 // You can use some popular tools to parse arguments.
@@ -203,9 +203,7 @@ parseArg(argv);
 
 ## Puppeteer executor API
 
-This API is not used normally by importing. It aims to provide an environment-level API, though rather primitive, for TS/JS code running in browser environment. See all available [Puppeteer executor APIs](https://github.com/selfage/bundler_cli/blob/main/puppeteer_executor_apis.ts) to control browser behaviors that are normally prohibited due to security reasons.
-
-One example can be found in [@selfage/puppeteer_test_runner](https://www.npmjs.com/package/@selfage/puppeteer_test_runner), which is assumed to be bundled and run inside Puppeteer environment together with code under test, and calls "exit" API which are then handled by `$ bundage prun` or `$ bundage pexe` to close the current browser page and exit the executor, like Nodejs's `process.exit()`.
+See [@selfage/puppeteer_executor_api](https://github.com/selfage/puppeteer_executor_api) for how to control browser behaviors from inside browser environment.
 
 ## General API access
 
