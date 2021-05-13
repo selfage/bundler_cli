@@ -6,7 +6,7 @@ import puppeteer = require("puppeteer");
 import stream = require("stream");
 import util = require("util");
 import { stripFileExtension } from "@selfage/cli/io_helper";
-import { DELETE, EXIT, SCREENSHOT } from "@selfage/puppeteer_executor_api";
+import { DELETE, EXIT, SCREENSHOT } from "@selfage/puppeteer_executor_api/cmds";
 let pipeline = util.promisify(stream.pipeline);
 
 let HOST_NAME = "localhost";
