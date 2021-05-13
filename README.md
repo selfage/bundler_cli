@@ -87,7 +87,7 @@ Options:
 
 ## Run in Puppeteer
 
-[Puppetter](https://www.npmjs.com/package/puppeteer) is a headless Chrome with high-level Node API. `$ bundage prun` makes it feels like running an exectuable TS/JS file in Node but actually in Puppeteer/headless Chrome environment. It bundles and run the bundled JS file by writing a temp HTML file pointing to the JS file, starting a local server and registering file handlers to serve them. We expect your bundled JS file does all the UI work, creating HTML elements, setting CSS and etc.
+This command makes it feels like running an exectuable TS/JS file in Node but actually in Puppeteer/headless Chrome environment. It bundles and run the bundled JS file by writing a temp HTML file pointing to the JS file, starting a local server and registering file handlers to serve them. We expect your bundled JS file does all the UI work, creating HTML elements, setting CSS and etc.
 
 ```
 $ bundage prun -h
@@ -112,7 +112,6 @@ Options:
   -p, --port <port>                         The port number to start your local server. Default to 8000.
   -h, --help                                display help for command
 ```
-
 
 ## Execute in Puppeteer
 
@@ -188,22 +187,19 @@ Equivalently, you can define `"assetExts": [".png", ".gif", ".jpg"]` in your `pa
 
 Note that `--debug` doesn't guarantee stack traces will be mapped to TypeScript source code. You could consider using `source-map-support` package. E.g., you can `import 'source-map-support/register';` in your main file.
 
+## Puppeteer executor environment
+
+[Puppetter](https://www.npmjs.com/package/puppeteer) is essentially a headless Chrome. The term "Puppeteer executor environment" refers to the runtime environment provided by `$ bundage prun` or `$ bundage pexe` which is based on Puppeteer but with some additional APIs.
+
 ### Pass-through arguments
 
-Pass-through arguments can be accessed in your executable TS/JS file via a global `argv` variable which is an array of strings similar to Nodejs's `process.argv` except no Node path and JS file name. See an exmaple below.
+Pass-through arguments as made available by writing them to the temp HTML file, which can then be accessed by the JS code running in it. See [@selfage/puppeteer_executor_api#access-argv](https://github.com/selfage/puppeteer_executor_api#access-argv) for more details.
 
-```TypeScript
-import '@selfage/bundler_cli/puppeteer_executor_argv'; // import for side effect which declares argv as a global variable.
+### Command APIs
 
-// argv = ['-a', '10'] with `$ bundage prun my_file -- -a 10`
-// You can use some popular tools to parse arguments.
-parseArg(argv);
-// or parseArg(globalThis.argv);
-```
+Command APIs are quite primitive by simply logging special "commands" via `console.log()`. Logging events are exposed by Puppeteer and are listened to by `$ bundage prun` or `$ bundage pexe`, which then looks for those special strings and performs actions that are normally prohibited in browser environment, such as writing files.
 
-## Puppeteer executor API
-
-See [@selfage/puppeteer_executor_api](https://github.com/selfage/puppeteer_executor_api) for how to control browser behaviors from inside browser environment.
+See [@selfage/puppeteer_executor_api#command-apis](https://github.com/selfage/puppeteer_executor_api#command-apis) for all available APIs.
 
 ## General API access
 
