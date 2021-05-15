@@ -6,7 +6,7 @@
 
 ## Overview
 
-Written in TypeScript and compiled to ES6 with inline source map & source. See [@selfage/tsconfig](https://www.npmjs.com/package/@selfage/tsconfig) for full compiler options. Provides an opinionated bundling tools for developing frontend and backend in TypeScript, especially single page applications (SPAs), powered by `browserify` and `uglify-js`. See sections below for each sub-command and see [commander](https://www.npmjs.com/package/commander) if you are not sure about CLI syntax.
+Written in TypeScript and compiled to ES6 with inline source map & source. See [@selfage/tsconfig](https://www.npmjs.com/package/@selfage/tsconfig) for full compiler options. Provides an opinionated bundling tools for developing frontend and backend in TypeScript, especially single page applications (SPAs), powered by `browserify` and `uglify-js`, supporting importing asset files. See sections below for each sub-command and see [commander](https://www.npmjs.com/package/commander) if you are not sure about CLI syntax.
 
 Note that despite TypeScript can compile with various options, we expect you to set `"module": "commonjs"` and `"moduleResolution": "node"`, due to the use of `browserify`.
 
@@ -87,7 +87,7 @@ Options:
 
 ## Run in Puppeteer
 
-This command makes it feels like running an exectuable TS/JS file in Node but actually in Puppeteer/headless Chrome environment. It bundles and run the bundled JS file by writing a temp HTML file pointing to the JS file, starting a local server and registering file handlers to serve them. We expect your bundled JS file does all the UI work, creating HTML elements, setting CSS and etc.
+This command makes it feels like running an exectuable TS/JS file in Node but actually in Puppeteer/headless Chrome environment. It bundles and runs the bundled JS file by writing a temp HTML file pointing to the JS file, starting a local server and registering file handlers to serve them. We expect your bundled JS file does all the UI work, creating HTML elements, setting CSS and etc.
 
 ```
 $ bundage prun -h
@@ -193,7 +193,7 @@ Note that `--debug` doesn't guarantee stack traces will be mapped to TypeScript 
 
 ### Pass-through arguments
 
-Pass-through arguments as made available by writing them to the temp HTML file, which can then be accessed by the JS code running in it. See [@selfage/puppeteer_executor_api#access-argv](https://github.com/selfage/puppeteer_executor_api#access-argv) for more details.
+Pass-through arguments are made available by writing them to the temp HTML file, which can then be accessed by the JS code running in it. See [@selfage/puppeteer_executor_api#access-argv](https://github.com/selfage/puppeteer_executor_api#access-argv) for more details.
 
 ### Command APIs
 
