@@ -1,6 +1,6 @@
 {
   "name": "@selfage/bundler_cli",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "CLI for bundling and running bundled frontend or backend TypeScript files.",
   "repository": {
     "type": "git",

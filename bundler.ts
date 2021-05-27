@@ -36,6 +36,7 @@ export async function bundleForNodeReturnAssetFiles(
     path.relative(rootDir, outputFile),
     rootDir,
     true,
+    false,
     (absoluteFile, rootDir, outputAssetFiles) => {
       return new AssetTransformer(absoluteFile, rootDir, outputAssetFiles);
     },
@@ -56,6 +57,7 @@ export async function bundleForBrowserReturnAssetFiles(
     outputFile,
     rootDir,
     false,
+    true,
     (absoluteFile, rootDir, outputAssetFiles) => {
       return new AssetTransformer(absoluteFile, rootDir, outputAssetFiles);
     },
@@ -92,6 +94,7 @@ export async function bundle(
   outputFile: string, // relative to `rootDir`
   rootDir: string, // relative to '.'
   inNode: boolean,
+  bundleExternal: boolean,
   transformerFactoryFn: (
     absoluteFile: string,
     rootDir: string,
@@ -135,6 +138,7 @@ export async function bundle(
   filesToBeBrowserified.push(stripFileExtension(sourceFile) + ".js");
   let browserifyHandler = browserifyConstructor(filesToBeBrowserified, {
     node: inNode,
+    bundleExternal: bundleExternal,
     basedir: rootDir,
     debug: options.debug,
   });

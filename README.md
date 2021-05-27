@@ -18,15 +18,15 @@ You can bundle for running in either Node or browser environment.
 $ bundage bfn -h
 Usage: bundage bundleForNode|bfn [options] <sourceFile> <outputFile>
 
-Compile and bundle from a TypeScript source file that can be run in Node. Both file exts can be neglected and are always fixed as .ts and .js respectively.
+Compile and bundle from a TypeScript source file that can be run in Node. Both file exts can be neglected and are always fixed as .ts and .js respectively. Npm modules are not actually bundled due to many of them not compatible with bundling.
 
 Options:
   -e, --environment-file <environmentFile>  An extra TypeScript file to be bundled together with the source file, always relative to the current
                                             working directory. Typically such file contains global variables for a particular environment such as
                                             PROD or DEV, and it's not imported by the source file but assumed to be present at runtime.
   -a, --asset-exts <assetExts...>           A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath
-                                            = require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not
-                                            provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
+                                            = require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If
+                                            not provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
   -s, --skip-minify                         Skip minification when bundling. Useful for inspecting bundling issues.
   -d, --debug                               Include inline source map and inline source.
   -c, --tsconfig-file <file>                The file path to tsconfig.json, always relative to the current working directory. If not provided, it

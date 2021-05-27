@@ -66,7 +66,8 @@ function main(): void {
     .description(
       `Compile and bundle from a TypeScript source file that can be run in ` +
         `Node. Both file exts can be neglected and are always fixed as .ts ` +
-        `and .js respectively.`
+        `and .js respectively. Npm modules are not actually bundled due to ` +
+        `many of them not compatible with bundling.`
     )
     .option(ENVIRONMENT_FILE_OPTION[0], ENVIRONMENT_FILE_OPTION[1])
     .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
@@ -170,10 +171,10 @@ function main(): void {
     .command("bundleWebApps")
     .alias("bwa")
     .description(
-      `Bundle all TypeScript source files based on <entriesConfig>, generate `+
-        `HTML files pointing to the bundled JS files respectively, compress `+
-        `them with Gzip, collect a list of all bundled JS & HTML file paths `+
-        `and asset file paths to <bundledResources>, and finally copy those `+
+      `Bundle all TypeScript source files based on <entriesConfig>, generate ` +
+        `HTML files pointing to the bundled JS files respectively, compress ` +
+        `them with Gzip, collect a list of all bundled JS & HTML file paths ` +
+        `and asset file paths to <bundledResources>, and finally copy those ` +
         `files into <outDir> where your web server can be started.`
     )
     .option(ROOT_DIR_OPTION[0], ROOT_DIR_OPTION[1])
