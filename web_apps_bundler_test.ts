@@ -65,10 +65,9 @@ TEST_RUNNER.run({
       execute: async () => {
         // Execute
         await bundleWebAppsAndCopyFiles(
-          "./test_data/web_apps_bundler",
-          "./other/entries.json",
-          "./test_data/web_apps_bundler/out_dir",
-          "./other/bundled_resources.json"
+          "./test_data/web_apps_bundler/other/entries.json",
+          "./test_data/web_apps_bundler/other/bundled_resources.json",
+          "./test_data/web_apps_bundler/out_dir"
         );
 
         // Verify
@@ -136,8 +135,7 @@ TEST_RUNNER.run({
             "./test_data/web_apps_bundler/out_dir/inside/some_bin.js",
             "./test_data/web_apps_bundler/out_dir/inside/some_bin.js.gz",
             "./test_data/web_apps_bundler/out_dir/inside/p5s_logo.png",
-            "./test_data/web_apps_bundler/out_dir/inside/test_image.png",
-            "./test_data/web_apps_bundler/out_dir/other/bundled_resources.json"
+            "./test_data/web_apps_bundler/out_dir/inside/test_image.png"
           ),
         ]);
       },

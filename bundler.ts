@@ -16,40 +16,37 @@ declare module "*.{ext}" {
 `;
 
 export interface CommonBundleOptions {
-  tsconfigFile?: string; // relative to '.'
-  environmentFile?: string; // relative to '.'
+  tsconfigFile?: string;
+  environmentFile?: string;
   assetExts?: Array<string>;
-  packageJsonFile?: string; // relative to '.'
+  packageJsonFile?: string;
   skipMinify?: boolean;
   debug?: boolean;
 }
 
-// Returned asset files are relative to '.'.
 export async function bundleForNodeReturnAssetFiles(
-  sourceFile: string, // relative to '.'
-  outputFile: string, // relative to '.'
+  sourceFile: string,
+  outputFile: string,
   options?: CommonBundleOptions
 ): Promise<Array<string>> {
   let rootDir = path.dirname(outputFile);
-  let assetFiles = await bundle(
-    path.relative(rootDir, sourceFile),
-    path.relative(rootDir, outputFile),
+  return await bundle(
+    sourceFile,
+    outputFile,
     rootDir,
     true,
     false,
-    (absoluteFile, rootDir, outputAssetFiles) => {
-      return new AssetTransformer(absoluteFile, rootDir, outputAssetFiles);
+    (absoluteFile, outputAssetFiles) => {
+      return new AssetTransformer(absoluteFile, outputAssetFiles);
     },
     options
   );
-  return assetFiles.map((assetFile) => path.join(rootDir, assetFile));
 }
 
-// Returned asset files are relative to `rootDir`.
 export async function bundleForBrowserReturnAssetFiles(
-  sourceFile: string, // relative to `rootDir`
-  outputFile: string, // relative to `rootDir`
-  rootDir = ".", // relative to '.'
+  sourceFile: string,
+  outputFile: string,
+  rootDir = ".",
   options?: CommonBundleOptions
 ): Promise<Array<string>> {
   return bundle(
@@ -58,8 +55,8 @@ export async function bundleForBrowserReturnAssetFiles(
     rootDir,
     false,
     true,
-    (absoluteFile, rootDir, outputAssetFiles) => {
-      return new AssetTransformer(absoluteFile, rootDir, outputAssetFiles);
+    (absoluteFile, outputAssetFiles) => {
+      return new AssetTransformer(absoluteFile, outputAssetFiles);
     },
     options
   );
@@ -68,7 +65,6 @@ export async function bundleForBrowserReturnAssetFiles(
 class AssetTransformer extends stream.Transform {
   public constructor(
     private absoluteFile: string,
-    private rootDir: string,
     private outputAssetFilePaths: Array<string>
   ) {
     super({
@@ -76,7 +72,7 @@ class AssetTransformer extends stream.Transform {
         callback();
       },
       flush: (callback) => {
-        let relativePath = path.relative(this.rootDir, this.absoluteFile);
+        let relativePath = path.relative(".", this.absoluteFile);
         this.outputAssetFilePaths.push(relativePath);
         callback(
           undefined,
@@ -88,16 +84,14 @@ class AssetTransformer extends stream.Transform {
   }
 }
 
-// Returned asset files are relative to `rootDir`.
 export async function bundle(
-  sourceFile: string, // relative to `rootDir`
-  outputFile: string, // relative to `rootDir`
-  rootDir: string, // relative to '.'
+  sourceFile: string,
+  outputFile: string,
+  rootDir: string,
   inNode: boolean,
   bundleExternal: boolean,
   transformerFactoryFn: (
     absoluteFile: string,
-    rootDir: string,
     outputAssetFiles: Array<string>
   ) => stream.Transform,
   options: CommonBundleOptions = {}
@@ -113,13 +107,9 @@ export async function bundle(
   }
 
   if (!assetExts) {
-    await compile(path.join(rootDir, sourceFile), options.tsconfigFile);
+    await compile(sourceFile, options.tsconfigFile);
   } else {
-    await compileWithAssets(
-      path.join(rootDir, sourceFile),
-      assetExts,
-      options.tsconfigFile
-    );
+    await compileWithAssets(sourceFile, assetExts, options.tsconfigFile);
   }
   if (options.environmentFile) {
     await compile(options.environmentFile, options.tsconfigFile);
@@ -135,7 +125,9 @@ export async function bundle(
       )
     );
   }
-  filesToBeBrowserified.push(stripFileExtension(sourceFile) + ".js");
+  filesToBeBrowserified.push(
+    path.relative(rootDir, stripFileExtension(sourceFile) + ".js")
+  );
   let browserifyHandler = browserifyConstructor(filesToBeBrowserified, {
     node: inNode,
     bundleExternal: bundleExternal,
@@ -145,7 +137,7 @@ export async function bundle(
   let outputAssetFiles = new Array<string>();
   browserifyHandler.transform((file) => {
     if (assetExts && assetExts.includes(path.extname(file).substring(1))) {
-      return transformerFactoryFn(file, rootDir, outputAssetFiles);
+      return transformerFactoryFn(file, outputAssetFiles);
     } else {
       return new stream.PassThrough();
     }
@@ -172,16 +164,16 @@ export async function bundle(
   }
 
   await fs.promises.writeFile(
-    path.join(rootDir, stripFileExtension(outputFile) + ".js"),
+    stripFileExtension(outputFile) + ".js",
     outputCode
   );
   return outputAssetFiles;
 }
 
 async function compileWithAssets(
-  sourceFile: string, // relative to '.'
+  sourceFile: string,
   assetExts: Array<string>,
-  tsconfigFile?: string // relative to '.'
+  tsconfigFile?: string
 ): Promise<void> {
   let tempFileContent = new Array<string>();
   for (let ext of assetExts) {

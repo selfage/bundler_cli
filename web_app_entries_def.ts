@@ -25,6 +25,7 @@ export let WEB_APP_ENTRY: MessageDescriptor<WebAppEntry> = {
 };
 
 export interface WebAppEntries {
+  rootDir?: string,
   entries?: Array<WebAppEntry>,
 /* Extra asset files that need to be copied to and served from a new directory, such as favicon.ico. Asset files that are imported by entry files don't need to be included here. */
   extraAssets?: Array<string>,
@@ -36,6 +37,10 @@ export let WEB_APP_ENTRIES: MessageDescriptor<WebAppEntries> = {
     return new Object();
   },
   fields: [
+    {
+      name: 'rootDir',
+      primitiveType: PrimitiveType.STRING,
+    },
     {
       name: 'entries',
       messageDescriptor: WEB_APP_ENTRY,

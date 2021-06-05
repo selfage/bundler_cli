@@ -6,8 +6,8 @@ import { executeInPuppeteer } from "./puppeteer_executor";
 import { stripFileExtension } from "@selfage/cli/io_helper";
 
 export async function runInPuppeteer(
-  sourceFile: string, // relative to `rootDir`
-  rootDir?: string, // relative to '.'
+  sourceFile: string,
+  rootDir?: string,
   port?: number,
   options?: CommonBundleOptions,
   args = new Array<string>()

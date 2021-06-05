@@ -251,8 +251,8 @@ TEST_RUNNER.run({
       execute: async () => {
         // Execute
         let assetFiles = await bundleForBrowserReturnAssetFiles(
-          "./bundler/use_image.ts",
-          "./bundler/use_image_bin.ts",
+          "./test_data/bundler/use_image.ts",
+          "./test_data/bundler/use_image_bin.ts",
           "./test_data",
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
@@ -263,10 +263,13 @@ TEST_RUNNER.run({
         // Verify
         assertThat(
           assetFiles,
-          eqArray([eq("bundler/inside/sample.jpg")]),
+          eqArray([eq("test_data/bundler/inside/sample.jpg")]),
           "asset files"
         );
-        await executeInPuppeteer("./bundler/use_image_bin.js", "./test_data");
+        await executeInPuppeteer(
+          "./test_data/bundler/use_image_bin.js",
+          "./test_data"
+        );
         let [image1, image2] = await Promise.all([
           fs.promises.readFile("./test_data/bundler/rendered_image.png"),
           fs.promises.readFile("./test_data/bundler/golden_image.png"),

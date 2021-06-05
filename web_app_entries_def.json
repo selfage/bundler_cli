@@ -15,6 +15,9 @@
   "message": {
     "name": "WebAppEntries",
     "fields": [{
+      "name": "rootDir",
+      "type": "string"
+    }, {
       "name": "entries",
       "type": "WebAppEntry",
       "isArray": true

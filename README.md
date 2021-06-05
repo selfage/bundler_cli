@@ -57,9 +57,6 @@ Options:
   -h, --help                                display help for command
 ```
 
-
-
-
 ## Run in node
 
 You can bundle and then run the bundled JS file in Node in one command.

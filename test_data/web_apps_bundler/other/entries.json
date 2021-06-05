@@ -1,4 +1,5 @@
 {
+  "rootDir": "..",
   "entries": [{
     "ts": "../main",
     "bin": "../index"

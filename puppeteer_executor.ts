@@ -19,13 +19,13 @@ export interface OutputCollection {
 }
 
 export async function executeInPuppeteer(
-  binFile: string, // relative to `rootDir`
-  rootDir = ".", // relative to '.'
+  binFile: string,
+  rootDir = ".",
   outputToConsole = true,
   port = 8000,
   args = new Array<string>()
 ): Promise<OutputCollection> {
-  let binJsFile = stripFileExtension(binFile) + ".js";
+  let binJsFile = path.relative(rootDir, stripFileExtension(binFile) + ".js");
   let tempBinFile = path.join(rootDir, "selfage_temp_bin.html");
   let writeFilePromise = fs.promises.writeFile(
     tempBinFile,
