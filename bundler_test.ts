@@ -22,19 +22,22 @@ TEST_RUNNER.run({
   name: "BundlerTest",
   cases: [
     {
-      name: "BundleTwoFilesForNode",
+      name: "BundleTwoFilesWithInlineJsForNode",
       execute: async () => {
         // Execute
         await bundleForNodeReturnAssetFiles(
           "./test_data/bundler/two_file.ts",
           "./test_data/bundler/two_file_bin.ts",
-          { tsconfigFile: "./test_data/bundler/tsconfig.json" }
+          {
+            inlineJs: [`globalThis.extra = "yes";`],
+            tsconfigFile: "./test_data/bundler/tsconfig.json",
+          }
         );
 
         // Verify
         assertThat(
           executeSync("./test_data/bundler/two_file_bin.js").stdout,
-          containStr("31"),
+          containStr("31yes"),
           "output"
         );
 
@@ -47,13 +50,14 @@ TEST_RUNNER.run({
       },
     },
     {
-      name: "BundleTwoFilesForNodeSkipMinify",
+      name: "BundleTwoFilesWithInlineJsForNodeSkipMinify",
       execute: async () => {
         // Execute
         await bundleForNodeReturnAssetFiles(
           "./test_data/bundler/two_file.ts",
           "./test_data/bundler/two_file_bin.ts",
           {
+            inlineJs: [`globalThis.extra = "yes";`],
             tsconfigFile: "./test_data/bundler/tsconfig.json",
             skipMinify: true,
           }
@@ -62,7 +66,7 @@ TEST_RUNNER.run({
         // Verify
         assertThat(
           executeSync("./test_data/bundler/two_file_bin.js").stdout,
-          containStr("31"),
+          containStr("31yes"),
           "output"
         );
 
@@ -107,7 +111,7 @@ TEST_RUNNER.run({
           "./test_data/bundler/try_environment_bin.js",
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
-            environmentFile: "./test_data/bundler/environment_dev.ts",
+            extraFiles: ["./test_data/bundler/environment_dev.ts"],
           }
         );
 
@@ -136,7 +140,7 @@ TEST_RUNNER.run({
           "./test_data/bundler/try_environment_bin.js",
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
-            environmentFile: "./test_data/bundler/environment_prod.ts",
+            extraFiles: ["./test_data/bundler/environment_prod.ts"],
           }
         );
 
@@ -165,7 +169,7 @@ TEST_RUNNER.run({
           "./test_data/bundler/use_text_bin.ts",
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
-            assetExts: ["txt"],
+            assetExts: [".txt"],
           }
         );
 
@@ -256,7 +260,7 @@ TEST_RUNNER.run({
           "./test_data",
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
-            assetExts: ["jpg"],
+            assetExts: [".jpg"],
           }
         );
 

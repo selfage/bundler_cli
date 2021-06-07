@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import packageConfig from "./package.json";
+import fs = require("fs");
+import path = require("path");
 import {
   CommonBundleOptions,
   bundleForBrowserReturnAssetFiles,
@@ -12,16 +13,19 @@ import {
   DEFAULT_BUNDLED_RESOURCES_FILE,
   DEFAULT_ENTRIES_CONFIG_FILE,
   bundleWebAppsAndCopyFiles,
-} from "./web_apps_bundler";
+} from "./web_app_bundler";
+import { bundleWebServerAndCopyFiles } from "./web_server_bundler";
 import { Command } from "commander";
 import "source-map-support/register";
 
-let ENVIRONMENT_FILE_OPTION = [
-  "-e, --environment-file <environmentFile>",
-  `An extra TypeScript file to be bundled together with the source file, ` +
-    `Typically such file contains global variables for a particular ` +
-    `environment such as PROD or DEV, and it's not imported by the source ` +
-    `file but assumed to be present at runtime.`,
+let EXTRA_FILES_OPTION = [
+  "-e, --extra-files <extraFiles...>",
+  `Extra TypeScript files to be bundled together with and before the source ` +
+    `file.`,
+];
+let INLINE_JS_CODE_OPTION = [
+  "-i, --inline-js <inlineJs...>",
+  `Inline JavaScript code to be bundled together with and before all files.`,
 ];
 let ASSET_EXT_OPTION = [
   "-a, --asset-exts <assetExts...>",
@@ -44,9 +48,16 @@ let TSCONFIG_FILE_OPTION = [
   `The file path to tsconfig.json. If not provided, it will try to look for ` +
     `it at the current working directory.`,
 ];
-let ROOT_DIR_OPTION = [
-  "-r, --root-dir <rootDir>",
-  `The root directory that all imported assets should be relative to, such ` +
+let ENTRIES_CONFIG_FILE_OPTION = [
+  "-m, --entries-config-file <entriesConfigFile>",
+  `A config file to specify a list of entry files, each of which should ` +
+    `be a single page application. See ` +
+    `https://www.npmjs.com/package/@selfage/bundler_cli for its schema. ` +
+    `If not provided, it will look for ./${DEFAULT_ENTRIES_CONFIG_FILE}.`,
+];
+let BASE_DIR_OPTION = [
+  "-r, --base-dir <baseDir>",
+  `The base directory that all imported assets should be relative to, such ` +
     `that a web server can serve files at this directory. If not provided, ` +
     `it will be the current working directory.`,
 ];
@@ -56,6 +67,9 @@ let PORT_OPTION = [
 ];
 
 function main(): void {
+  let packageConfig = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "package.json")).toString()
+  );
   let program = new Command();
   program.version(packageConfig.version);
   program
@@ -67,7 +81,8 @@ function main(): void {
         `and .js respectively. Npm modules are not actually bundled due to ` +
         `many of them not compatible with bundling.`
     )
-    .option(ENVIRONMENT_FILE_OPTION[0], ENVIRONMENT_FILE_OPTION[1])
+    .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
+    .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
     .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
     .option(SKIP_MINIFY_OPTION[0], SKIP_MINIFY_OPTION[1])
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
@@ -88,7 +103,8 @@ function main(): void {
         `always fixed as .ts. Pass through arguments to the exectuable file ` +
         `after --.`
     )
-    .option(ENVIRONMENT_FILE_OPTION[0], ENVIRONMENT_FILE_OPTION[1])
+    .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
+    .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
     .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
     .option(SKIP_MINIFY_OPTION[0], SKIP_MINIFY_OPTION[1])
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
@@ -108,8 +124,9 @@ function main(): void {
         `Browser. Both file exts can be neglected and are always fixed as ` +
         `.ts and .js respectively.`
     )
-    .option(ROOT_DIR_OPTION[0], ROOT_DIR_OPTION[1])
-    .option(ENVIRONMENT_FILE_OPTION[0], ENVIRONMENT_FILE_OPTION[1])
+    .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
+    .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
+    .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
     .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
     .option(SKIP_MINIFY_OPTION[0], SKIP_MINIFY_OPTION[1])
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
@@ -118,7 +135,7 @@ function main(): void {
       await bundleForBrowserReturnAssetFiles(
         sourceFile as string,
         outputFile as string,
-        options.rootDir as string,
+        options.baseDir as string,
         options as CommonBundleOptions
       );
     });
@@ -131,8 +148,9 @@ function main(): void {
         `can be neglected and is always fixed as .ts. Pass through arguments ` +
         `to the exectuable file after --.`
     )
-    .option(ROOT_DIR_OPTION[0], ROOT_DIR_OPTION[1])
-    .option(ENVIRONMENT_FILE_OPTION[0], ENVIRONMENT_FILE_OPTION[1])
+    .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
+    .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
+    .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
     .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
     .option(SKIP_MINIFY_OPTION[0], SKIP_MINIFY_OPTION[1])
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
@@ -141,7 +159,7 @@ function main(): void {
     .action((sourceFile, options, extraArgs) =>
       runInPuppeteer(
         sourceFile as string,
-        options.rootDir as string,
+        options.baseDir as string,
         options.port as number,
         options as CommonBundleOptions,
         extraArgs as Array<string>
@@ -155,12 +173,12 @@ function main(): void {
         `headless Chrome. The file ext can be neglected and is always fixed ` +
         `as .js. Pass through arguments to the exectuable file after --.`
     )
-    .option(ROOT_DIR_OPTION[0], ROOT_DIR_OPTION[1])
+    .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
     .option(PORT_OPTION[0], PORT_OPTION[1], (value) => parseInt(value, 10))
     .action(async (binFile, options, extraArgs) => {
       await executeInPuppeteer(
         binFile as string,
-        options.rootDir as string,
+        options.baseDir as string,
         true,
         options.port as number,
         extraArgs as Array<string>
@@ -176,36 +194,73 @@ function main(): void {
         `and asset file paths to <bundledResources>, and finally copy those ` +
         `files into <outDir> where your web server can be started.`
     )
-    .option(ROOT_DIR_OPTION[0], ROOT_DIR_OPTION[1])
+    .option(ENTRIES_CONFIG_FILE_OPTION[0], ENTRIES_CONFIG_FILE_OPTION[1])
     .option(
-      "-m, --entries-config <entriesConfig>",
-      `A config file to specify a list of entry files, each of which should ` +
-        `be a single page application. See ` +
-        `https://www.npmjs.com/package/@selfage/bundler_cli for its schema. ` +
-        `If not provided, it will look for ./${DEFAULT_ENTRIES_CONFIG_FILE}.`
-    )
-    .option(
-      "-o, --out-dir <outDir>",
-      `The output directory to where files will be copied. If not provided, ` +
-        `or when <outDir> equals <rootDir>, no copies happen.`
-    )
-    .option(
-      "-b, --bundled-resources <bundledResources>",
+      "-b, --bundled-resources-file <bundledResourcesFile>",
       `An output file generated after bundling, containing a JSON array of ` +
         `files that need to be copied to <outDir> and served in your web ` +
         `server. If not provided, it will write to ` +
         `./${DEFAULT_BUNDLED_RESOURCES_FILE}.`
     )
-    .option(ENVIRONMENT_FILE_OPTION[0], ENVIRONMENT_FILE_OPTION[1])
+    .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
+    .option(
+      "-o, --out-dir <outDir>",
+      `The output directory to where files will be copied. If not provided, ` +
+        `or when <outDir> equals <baseDir>, no copies happen.`
+    )
+    .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
+    .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
     .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
     .option(SKIP_MINIFY_OPTION[0], SKIP_MINIFY_OPTION[1])
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .action((options) =>
       bundleWebAppsAndCopyFiles(
-        options.entriesConfig as string,
-        options.bundledResources as string,
+        options.entriesConfigFile as string,
+        options.bundledResourcesFile as string,
+        options.baseDir as string,
         options.outDir as string,
+        options as CommonBundleOptions
+      )
+    );
+  program
+    .command("bundleWebServer <serverSourceFile> <serverOutputFile>")
+    .alias("bws")
+    .description(
+      `Bundle a TypeScript source file as the server's main file and output. ` +
+        `Both file exts can be neglected and are always fixed as .ts and .js ` +
+        `respectively. Npm modules are not actually bundled due to many of ` +
+        `them not compatible with bundling. It will also bundle web apps ` +
+        `based on <entriesConfigFile> as well as <baseDir>. Finally, all ` +
+        `bundled files and imported or extra assets will be copied from ` +
+        `<fromDir> to <toDir>, without any source file or intermediate file..`
+    )
+    .option(ENTRIES_CONFIG_FILE_OPTION[0], ENTRIES_CONFIG_FILE_OPTION[1])
+    .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
+    .option(
+      "-f, --from-dir <fromDir>",
+      `The directoy to copy from. If not provided, it will be the current ` +
+        `working directory.`
+    )
+    .option(
+      "-t, --to-dir <toDir>",
+      `The directoy to copy to. If not provided, or when <toDir> equals ` +
+        `<fromDir>, no copies happen.`
+    )
+    .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
+    .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
+    .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
+    .option(SKIP_MINIFY_OPTION[0], SKIP_MINIFY_OPTION[1])
+    .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
+    .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
+    .action((serverSourceFile, serverOutputFile, options) =>
+      bundleWebServerAndCopyFiles(
+        serverSourceFile as string,
+        serverOutputFile as string,
+        options.entriesConfigFile as string,
+        options.baseDir as string,
+        options.fromDir as string,
+        options.toDir as string,
         options as CommonBundleOptions
       )
     );

@@ -7,7 +7,8 @@ import {
   CommonBundleOptions,
   bundleForBrowserReturnAssetFiles,
 } from "./bundler";
-import { WEB_APP_ENTRIES, WebAppEntry } from "./web_app_entries_def";
+import { copyFiles } from "./files_copier";
+import { WEB_APP_ENTRIES } from "./web_app_entries_def";
 import { stripFileExtension } from "@selfage/cli/io_helper";
 import { parseMessage } from "@selfage/message/parser";
 let pipeline = util.promisify(stream.pipeline);
@@ -18,21 +19,11 @@ export let DEFAULT_BUNDLED_RESOURCES_FILE = "web_app_resources.json";
 export async function bundleWebAppsAndCopyFiles(
   entriesConfigFile = DEFAULT_ENTRIES_CONFIG_FILE,
   bundledResourcesFile = DEFAULT_BUNDLED_RESOURCES_FILE,
-  outDir?: string,
+  baseDir = ".",
+  outDir = ".",
   options?: CommonBundleOptions
 ): Promise<void> {
-  let jsonString = (await fs.promises.readFile(entriesConfigFile)).toString();
-  let webAppEntries = parseMessage(JSON.parse(jsonString), WEB_APP_ENTRIES);
-  let configDir = path.dirname(entriesConfigFile);
-  let rootDir = path.join(configDir, webAppEntries.rootDir);
-
-  let allFiles = await bundleWebApps(
-    rootDir,
-    configDir,
-    webAppEntries.entries,
-    webAppEntries.extraAssets,
-    options
-  );
+  let allFiles = await bundleWebApps(entriesConfigFile, baseDir, options);
   let allRelativeFiles = allFiles.map((file) =>
     path.relative(path.dirname(bundledResourcesFile), file)
   );
@@ -40,40 +31,34 @@ export async function bundleWebAppsAndCopyFiles(
     bundledResourcesFile,
     JSON.stringify(allRelativeFiles)
   );
-  if (!outDir || rootDir === path.normalize(outDir)) {
+
+  if (path.normalize(outDir) === path.normalize(baseDir)) {
     return;
   }
-
-  await Promise.all(allFiles.map((file) => copyFile(file, rootDir, outDir)));
-}
-
-async function copyFile(
-  file: string,
-  rootDir: string,
-  outDir: string
-): Promise<void> {
-  let outFile = path.join(outDir, path.relative(rootDir, file));
-  await fs.promises.mkdir(path.dirname(outFile), { recursive: true });
-  await fs.promises.copyFile(file, outFile);
+  await copyFiles(allFiles, baseDir, outDir);
 }
 
 export async function bundleWebApps(
-  rootDir: string,
-  configDir: string,
-  webAppEntries: Array<WebAppEntry>,
-  extraAssets: Array<string>,
+  entriesConfigFile: string,
+  baseDir: string,
   options?: CommonBundleOptions
 ): Promise<Array<string>> {
+  let webAppEntries = parseMessage(
+    JSON.parse((await fs.promises.readFile(entriesConfigFile)).toString()),
+    WEB_APP_ENTRIES
+  );
+  let configDir = path.dirname(entriesConfigFile);
+
   let promises = new Array<Promise<Array<string>>>();
-  for (let entry of webAppEntries) {
+  for (let entry of webAppEntries.entries) {
     promises.push(
       bundleAndGzip(
-        path.join(configDir, entry.ts),
-        path.join(configDir, entry.bin),
-        rootDir,
+        path.join(configDir, entry.source),
+        path.join(configDir, entry.output),
+        baseDir,
         options
       ),
-      writeHtmlFileAndGZip(path.join(configDir, entry.bin), rootDir)
+      writeHtmlFileAndGZip(path.join(configDir, entry.output), baseDir)
     );
   }
 
@@ -82,7 +67,7 @@ export async function bundleWebApps(
   for (let files of allFiles) {
     flattenedFiles.push(...files);
   }
-  for (let extraAsset of extraAssets) {
+  for (let extraAsset of webAppEntries.extraAssets) {
     flattenedFiles.push(path.join(configDir, extraAsset));
   }
   return flattenedFiles;
@@ -91,13 +76,13 @@ export async function bundleWebApps(
 async function bundleAndGzip(
   sourceFile: string,
   outputFile: string,
-  rootDir: string,
+  baseDir: string,
   options: CommonBundleOptions
 ): Promise<Array<string>> {
   let assetFiles = await bundleForBrowserReturnAssetFiles(
     sourceFile,
     outputFile,
-    rootDir,
+    baseDir,
     options
   );
   let jsFile = stripFileExtension(outputFile) + ".js";
@@ -107,11 +92,11 @@ async function bundleAndGzip(
 
 async function writeHtmlFileAndGZip(
   binFile: string,
-  rootDir: string
+  baseDir: string
 ): Promise<Array<string>> {
   let binModulePath = stripFileExtension(binFile);
   let htmlFile = binModulePath + ".html";
-  let binJsPath = path.relative(rootDir, binModulePath + ".js");
+  let binJsPath = path.relative(baseDir, binModulePath + ".js");
   await fs.promises.writeFile(
     htmlFile,
     `<!DOCTYPE html>
@@ -126,9 +111,7 @@ async function writeHtmlFileAndGZip(
   return [htmlFile, gzFile];
 }
 
-async function gzipFile(
-  file: string
-): Promise<string> {
+async function gzipFile(file: string): Promise<string> {
   await pipeline(
     fs.createReadStream(file),
     zlib.createGzip({ level: 9 }),

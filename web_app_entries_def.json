@@ -2,11 +2,11 @@
   "message": {
     "name": "WebAppEntry",
     "fields": [{
-      "name": "ts",
+      "name": "source",
       "type": "string",
       "comment": "The source TypeScript file, relative to the directory of the config file. File ext can be neglected."
     }, {
-      "name": "bin",
+      "name": "output",
       "type": "string",
       "comment": "The output file name after bundling, relative to the directory of the config file. File ext can be neglectd. A JS file and an HTML file are expected to be generated."
     }]
@@ -15,9 +15,6 @@
   "message": {
     "name": "WebAppEntries",
     "fields": [{
-      "name": "rootDir",
-      "type": "string"
-    }, {
       "name": "entries",
       "type": "WebAppEntry",
       "isArray": true

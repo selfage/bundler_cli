@@ -9,7 +9,7 @@ import { stripFileExtension } from "@selfage/cli/io_helper";
 
 // Export as a commonjs module.
 let TEMP_DECLARATION_FILE_CONTENT_TEMPLATE = `
-declare module "*.{ext}" {
+declare module "*{ext}" {
    let path: string;
    export = path;
 }
@@ -17,7 +17,8 @@ declare module "*.{ext}" {
 
 export interface CommonBundleOptions {
   tsconfigFile?: string;
-  environmentFile?: string;
+  extraFiles?: Array<string>;
+  inlineJs?: Array<string>;
   assetExts?: Array<string>;
   packageJsonFile?: string;
   skipMinify?: boolean;
@@ -29,71 +30,25 @@ export async function bundleForNodeReturnAssetFiles(
   outputFile: string,
   options?: CommonBundleOptions
 ): Promise<Array<string>> {
-  let rootDir = path.dirname(outputFile);
-  return await bundle(
-    sourceFile,
-    outputFile,
-    rootDir,
-    true,
-    false,
-    (absoluteFile, outputAssetFiles) => {
-      return new AssetTransformer(absoluteFile, outputAssetFiles);
-    },
-    options
-  );
+  let baseDir = path.dirname(outputFile);
+  return await bundle(sourceFile, outputFile, baseDir, true, false, options);
 }
 
 export async function bundleForBrowserReturnAssetFiles(
   sourceFile: string,
   outputFile: string,
-  rootDir = ".",
+  baseDir = ".",
   options?: CommonBundleOptions
 ): Promise<Array<string>> {
-  return bundle(
-    sourceFile,
-    outputFile,
-    rootDir,
-    false,
-    true,
-    (absoluteFile, outputAssetFiles) => {
-      return new AssetTransformer(absoluteFile, outputAssetFiles);
-    },
-    options
-  );
-}
-
-class AssetTransformer extends stream.Transform {
-  public constructor(
-    private absoluteFile: string,
-    private outputAssetFilePaths: Array<string>
-  ) {
-    super({
-      transform: (chunk, encoding, callback) => {
-        callback();
-      },
-      flush: (callback) => {
-        let relativePath = path.relative(".", this.absoluteFile);
-        this.outputAssetFilePaths.push(relativePath);
-        callback(
-          undefined,
-          // __filename will be transformed later by Browserify.
-          `module.exports = __filename;`
-        );
-      },
-    });
-  }
+  return bundle(sourceFile, outputFile, baseDir, false, true, options);
 }
 
 export async function bundle(
   sourceFile: string,
   outputFile: string,
-  rootDir: string,
+  baseDir: string,
   inNode: boolean,
   bundleExternal: boolean,
-  transformerFactoryFn: (
-    absoluteFile: string,
-    outputAssetFiles: Array<string>
-  ) => stream.Transform,
   options: CommonBundleOptions = {}
 ): Promise<Array<string>> {
   let assetExts: Array<string>;
@@ -107,37 +62,52 @@ export async function bundle(
   }
 
   if (!assetExts) {
-    await compile(sourceFile, options.tsconfigFile);
+    await compile(sourceFile, options.tsconfigFile, options.extraFiles);
   } else {
-    await compileWithAssets(sourceFile, assetExts, options.tsconfigFile);
-  }
-  if (options.environmentFile) {
-    await compile(options.environmentFile, options.tsconfigFile);
-  }
-
-  let filesToBeBrowserified = new Array<string>();
-  if (options.environmentFile) {
-    // environmentFile, if exists, needs to go first.
-    filesToBeBrowserified.push(
-      path.relative(
-        rootDir,
-        stripFileExtension(options.environmentFile) + ".js"
-      )
+    await compileWithAssets(
+      sourceFile,
+      assetExts,
+      options.extraFiles,
+      options.tsconfigFile
     );
   }
-  filesToBeBrowserified.push(
-    path.relative(rootDir, stripFileExtension(sourceFile) + ".js")
+
+  try {
+    await fs.promises.stat(baseDir);
+  } catch (e) {
+    e.message = "Base directory needs to be a valid directory. " + e.message;
+    throw e;
+  }
+  let entriesToBeBrowserified = new Array<string | stream.Readable>();
+  if (options.inlineJs) {
+    entriesToBeBrowserified.push(
+      ...options.inlineJs.map((jsCode) => {
+        return stream.Readable.from([jsCode]);
+      })
+    );
+  }
+  if (options.extraFiles) {
+    // If exists, put them before the main file such that variables will be
+    // defined and functions will be called before executing the main file.
+    for (let extraFile of options.extraFiles) {
+      entriesToBeBrowserified.push(
+        path.relative(baseDir, stripFileExtension(extraFile) + ".js")
+      );
+    }
+  }
+  entriesToBeBrowserified.push(
+    path.relative(baseDir, stripFileExtension(sourceFile) + ".js")
   );
-  let browserifyHandler = browserifyConstructor(filesToBeBrowserified, {
+  let browserifyHandler = browserifyConstructor(entriesToBeBrowserified, {
     node: inNode,
     bundleExternal: bundleExternal,
-    basedir: rootDir,
+    basedir: baseDir,
     debug: options.debug,
   });
   let outputAssetFiles = new Array<string>();
   browserifyHandler.transform((file) => {
-    if (assetExts && assetExts.includes(path.extname(file).substring(1))) {
-      return transformerFactoryFn(file, outputAssetFiles);
+    if (assetExts && assetExts.includes(path.extname(file))) {
+      return new AssetTransformer(file, outputAssetFiles);
     } else {
       return new stream.PassThrough();
     }
@@ -173,6 +143,7 @@ export async function bundle(
 async function compileWithAssets(
   sourceFile: string,
   assetExts: Array<string>,
+  extraFiles: Array<string> = [],
   tsconfigFile?: string
 ): Promise<void> {
   let tempFileContent = new Array<string>();
@@ -185,6 +156,28 @@ async function compileWithAssets(
     Math.random() * 4096
   ).toString(16)}.d.ts`;
   await fs.promises.writeFile(tempFile, tempFileContent.join(""));
-  await compile(sourceFile, tsconfigFile, [tempFile]);
+  await compile(sourceFile, tsconfigFile, [tempFile, ...extraFiles]);
   await fs.promises.unlink(tempFile);
+}
+
+class AssetTransformer extends stream.Transform {
+  public constructor(
+    private absoluteFile: string,
+    private outputAssetFilePaths: Array<string>
+  ) {
+    super({
+      transform: (chunk, encoding, callback) => {
+        callback();
+      },
+      flush: (callback) => {
+        let relativePath = path.relative(".", this.absoluteFile);
+        this.outputAssetFilePaths.push(relativePath);
+        callback(
+          undefined,
+          // __filename will be transformed later by Browserify.
+          `module.exports = __filename;`
+        );
+      },
+    });
+  }
 }

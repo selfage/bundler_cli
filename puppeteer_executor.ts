@@ -20,13 +20,13 @@ export interface OutputCollection {
 
 export async function executeInPuppeteer(
   binFile: string,
-  rootDir = ".",
+  baseDir = ".",
   outputToConsole = true,
   port = 8000,
-  args = new Array<string>()
+  args: Array<string> = []
 ): Promise<OutputCollection> {
-  let binJsFile = path.relative(rootDir, stripFileExtension(binFile) + ".js");
-  let tempBinFile = path.join(rootDir, "selfage_temp_bin.html");
+  let binJsFile = path.relative(baseDir, stripFileExtension(binFile) + ".js");
+  let tempBinFile = path.join(baseDir, "selfage_temp_bin.html");
   let writeFilePromise = fs.promises.writeFile(
     tempBinFile,
     `<html>
@@ -41,7 +41,7 @@ export async function executeInPuppeteer(
   server.addListener(
     "request",
     (request: http.IncomingMessage, response: http.ServerResponse) =>
-      serveFile(rootDir, request, response)
+      serveFile(baseDir, request, response)
   );
   let startServerPromise = new Promise<void>((resolve) => {
     server.listen({ host: HOST_NAME, port: port }, () => resolve());
@@ -59,11 +59,11 @@ export async function executeInPuppeteer(
           resolve();
         } else if (msg.text().startsWith(SCREENSHOT)) {
           let relativePath = msg.text().replace(SCREENSHOT, "");
-          let file = path.join(rootDir, relativePath);
+          let file = path.join(baseDir, relativePath);
           await page.screenshot({ path: file, omitBackground: true });
         } else if (msg.text().startsWith(DELETE)) {
           let relativePath = msg.text().replace(DELETE, "");
-          let file = path.join(rootDir, relativePath);
+          let file = path.join(baseDir, relativePath);
           try {
             await fs.promises.unlink(file);
           } catch (e) {
@@ -118,13 +118,13 @@ export async function executeInPuppeteer(
 }
 
 async function serveFile(
-  rootDir: string,
+  baseDir: string,
   request: http.IncomingMessage,
   response: http.ServerResponse
 ): Promise<void> {
   let url = new URL(request.url, `http://${request.headers.host}`);
   let matched = url.pathname.match(PATH_EXTRACTION_REGEX);
-  let file = path.join(rootDir, matched[1]);
+  let file = path.join(baseDir, matched[1]);
   let contentType = mime.lookup(path.extname(file));
   if (typeof contentType === "boolean") {
     throw new Error(`Unsupported file ext for ${file}.`);

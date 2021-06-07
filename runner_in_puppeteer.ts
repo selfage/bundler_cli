@@ -7,17 +7,12 @@ import { stripFileExtension } from "@selfage/cli/io_helper";
 
 export async function runInPuppeteer(
   sourceFile: string,
-  rootDir?: string,
+  baseDir?: string,
   port?: number,
   options?: CommonBundleOptions,
-  args = new Array<string>()
+  args: Array<string> = []
 ): Promise<void> {
   let binFile = stripFileExtension(sourceFile) + "_bin.js";
-  await bundleForBrowserReturnAssetFiles(
-    sourceFile,
-    binFile,
-    rootDir,
-    options
-  );
-  await executeInPuppeteer(binFile, rootDir, true, port, args);
+  await bundleForBrowserReturnAssetFiles(sourceFile, binFile, baseDir, options);
+  await executeInPuppeteer(binFile, baseDir, true, port, args);
 }

@@ -1,0 +1,7 @@
+{
+  "entries": [{
+    "source": "./fe/main",
+    "output": "./fe/index"
+  }],
+  "extraAssets": ["./fe/inside/p5s_logo.png"]
+}
