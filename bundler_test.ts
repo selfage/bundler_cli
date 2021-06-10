@@ -1,16 +1,7 @@
 import fs = require("fs");
-import {
-  bundleForBrowserReturnAssetFiles,
-  bundleForNodeReturnAssetFiles,
-} from "./bundler";
+import { bundleForBrowser, bundleForNode } from "./bundler";
 import { executeInPuppeteer } from "./puppeteer_executor";
-import {
-  assert,
-  assertThat,
-  containStr,
-  eq,
-  eqArray,
-} from "@selfage/test_matcher";
+import { assert, assertThat, containStr, eqArray } from "@selfage/test_matcher";
 import { TEST_RUNNER } from "@selfage/test_runner";
 import { SpawnSyncReturns, spawnSync } from "child_process";
 
@@ -25,9 +16,11 @@ TEST_RUNNER.run({
       name: "BundleTwoFilesWithInlineJsForNode",
       execute: async () => {
         // Execute
-        await bundleForNodeReturnAssetFiles(
+        await bundleForNode(
           "./test_data/bundler/two_file.ts",
           "./test_data/bundler/two_file_bin.ts",
+          undefined,
+          undefined,
           {
             inlineJs: [`globalThis.extra = "yes";`],
             tsconfigFile: "./test_data/bundler/tsconfig.json",
@@ -53,9 +46,11 @@ TEST_RUNNER.run({
       name: "BundleTwoFilesWithInlineJsForNodeSkipMinify",
       execute: async () => {
         // Execute
-        await bundleForNodeReturnAssetFiles(
+        await bundleForNode(
           "./test_data/bundler/two_file.ts",
           "./test_data/bundler/two_file_bin.ts",
+          undefined,
+          undefined,
           {
             inlineJs: [`globalThis.extra = "yes";`],
             tsconfigFile: "./test_data/bundler/tsconfig.json",
@@ -82,9 +77,11 @@ TEST_RUNNER.run({
       name: "StackTraceIncludeTsFileInNode",
       execute: async () => {
         // Execute
-        await bundleForNodeReturnAssetFiles(
+        await bundleForNode(
           "./test_data/bundler/stack_trace.ts",
           "./test_data/bundler/stack_trace_bin.js",
+          undefined,
+          undefined,
           { tsconfigFile: "./test_data/bundler/tsconfig.json", debug: true }
         );
 
@@ -106,9 +103,11 @@ TEST_RUNNER.run({
       name: "OnlyExecuteCodeUnderDevEnvironment",
       execute: async () => {
         // Execute
-        await bundleForNodeReturnAssetFiles(
+        await bundleForNode(
           "./test_data/bundler/try_environment.ts",
           "./test_data/bundler/try_environment_bin.js",
+          undefined,
+          undefined,
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
             extraFiles: ["./test_data/bundler/environment_dev.ts"],
@@ -135,9 +134,11 @@ TEST_RUNNER.run({
       name: "OnlyExecuteCodeUnderProdEnvironment",
       execute: async () => {
         // Execute
-        await bundleForNodeReturnAssetFiles(
+        await bundleForNode(
           "./test_data/bundler/try_environment.ts",
           "./test_data/bundler/try_environment_bin.js",
+          undefined,
+          undefined,
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
             extraFiles: ["./test_data/bundler/environment_prod.ts"],
@@ -161,12 +162,14 @@ TEST_RUNNER.run({
       },
     },
     {
-      name: "BundleAssetsInNode",
+      name: "BundleAssetsAndCopyInNode",
       execute: async () => {
         // Execute
-        let assetFiles = await bundleForNodeReturnAssetFiles(
+        await bundleForNode(
           "./test_data/bundler/use_text.ts",
           "./test_data/bundler/use_text_bin.ts",
+          "./test_data/bundler",
+          "./test_data/bundler/out_copy",
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
             assetExts: [".txt"],
@@ -176,13 +179,13 @@ TEST_RUNNER.run({
         // Verify
         assertThat(
           executeSync("./test_data/bundler/use_text_bin.js").stdout,
-          containStr("not\n:real\n:11"),
-          "output"
+          containStr("not\n:11"),
+          "original output"
         );
         assertThat(
-          assetFiles,
-          eqArray([eq("test_data/bundler/inside/some.txt")]),
-          "asset files"
+          executeSync("./test_data/bundler/out_copy/use_text_bin.js").stdout,
+          containStr("not\n:11"),
+          "copied output"
         );
 
         // Cleanup
@@ -190,16 +193,22 @@ TEST_RUNNER.run({
           fs.promises.unlink("./test_data/bundler/base.js"),
           fs.promises.unlink("./test_data/bundler/use_text.js"),
           fs.promises.unlink("./test_data/bundler/use_text_bin.js"),
+          fs.promises.unlink("./test_data/bundler/out_copy/use_text_bin.js"),
+          fs.promises.unlink("./test_data/bundler/out_copy/inside/some.txt"),
         ]);
+        await fs.promises.rmdir("./test_data/bundler/out_copy/inside");
+        await fs.promises.rmdir("./test_data/bundler/out_copy");
       },
     },
     {
-      name: "BundleAssetsWithPackageJsonInNode",
+      name: "BundleAssetsAndCopyWithPackageJsonInNode",
       execute: async () => {
         // Execute
-        await bundleForNodeReturnAssetFiles(
+        await bundleForNode(
           "./test_data/bundler/use_text.ts",
           "./test_data/bundler/use_text_bin.ts",
+          "./test_data/bundler",
+          "./test_data/bundler/out_pack",
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
             packageJsonFile: "./test_data/bundler/package.json",
@@ -209,8 +218,13 @@ TEST_RUNNER.run({
         // Verify
         assertThat(
           executeSync("./test_data/bundler/use_text_bin.js").stdout,
-          containStr("not\n:real\n:11"),
-          "output"
+          containStr("not\n:11"),
+          "original output"
+        );
+        assertThat(
+          executeSync("./test_data/bundler/out_pack/use_text_bin.js").stdout,
+          containStr("not\n:11"),
+          "copied output"
         );
 
         // Cleanup
@@ -218,22 +232,26 @@ TEST_RUNNER.run({
           fs.promises.unlink("./test_data/bundler/base.js"),
           fs.promises.unlink("./test_data/bundler/use_text.js"),
           fs.promises.unlink("./test_data/bundler/use_text_bin.js"),
+          fs.promises.unlink("./test_data/bundler/out_pack/use_text_bin.js"),
+          fs.promises.unlink("./test_data/bundler/out_pack/inside/some.txt"),
         ]);
+        await fs.promises.rmdir("./test_data/bundler/out_pack/inside");
+        await fs.promises.rmdir("./test_data/bundler/out_pack");
       },
     },
     {
       name: "StackTraceIncludeTsFileInBrowser",
       execute: async () => {
         // Execute
-        let assetFiles = await bundleForBrowserReturnAssetFiles(
+        await bundleForBrowser(
           "./test_data/bundler/stack_trace.ts",
           "./test_data/bundler/stack_trace_bin.js",
+          undefined,
           undefined,
           { tsconfigFile: "./test_data/bundler/tsconfig.json", debug: true }
         );
 
         // Verify
-        assertThat(assetFiles, eqArray([]), "asset files");
         let outputCollection = await executeInPuppeteer(
           "./test_data/bundler/stack_trace_bin.js"
         );
@@ -251,36 +269,54 @@ TEST_RUNNER.run({
       },
     },
     {
-      name: "BundleAssetsWithRootDirInBrowser",
+      name: "BundleAssetsAndCopyInBrowser",
       execute: async () => {
         // Execute
-        let assetFiles = await bundleForBrowserReturnAssetFiles(
+        await bundleForBrowser(
           "./test_data/bundler/use_image.ts",
           "./test_data/bundler/use_image_bin.ts",
-          "./test_data",
+          "./test_data/bundler",
+          "./test_data/bundler/out_browser",
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
             assetExts: [".jpg"],
+            skipMinify: true,
           }
         );
 
         // Verify
-        assertThat(
-          assetFiles,
-          eqArray([eq("test_data/bundler/inside/sample.jpg")]),
-          "asset files"
+        let goldenImage = await fs.promises.readFile(
+          "./test_data/bundler/golden_image.png"
         );
         await executeInPuppeteer(
           "./test_data/bundler/use_image_bin.js",
-          "./test_data"
+          "./test_data/bundler"
         );
-        let [image1, image2] = await Promise.all([
-          fs.promises.readFile("./test_data/bundler/rendered_image.png"),
-          fs.promises.readFile("./test_data/bundler/golden_image.png"),
-        ]);
+        let image1 = await fs.promises.readFile(
+          "./test_data/bundler/rendered_image.png"
+        );
         // If failed, compare the two iamges and either make rendered_image.png
         // the new golden_image.png, or delete rendered_image.png.
-        assert(image1.equals(image2), "image1 to be the same as image2", "not");
+        assert(
+          image1.equals(goldenImage),
+          "image1 to be the same as goldenImage",
+          "not"
+        );
+
+        await executeInPuppeteer(
+          "./test_data/bundler/out_browser/use_image_bin.js",
+          "./test_data/bundler/out_browser"
+        );
+        let image2 = await fs.promises.readFile(
+          "./test_data/bundler/out_browser/rendered_image.png"
+        );
+        // If failed, compare the two iamges and either make rendered_image.png
+        // the new golden_image.png, or delete rendered_image.png.
+        assert(
+          image2.equals(goldenImage),
+          "image2 to be the same as goldenImage",
+          "not"
+        );
 
         // Cleanup
         await Promise.all([
@@ -288,7 +324,18 @@ TEST_RUNNER.run({
           fs.promises.unlink("./test_data/bundler/base.js"),
           fs.promises.unlink("./test_data/bundler/use_image.js"),
           fs.promises.unlink("./test_data/bundler/use_image_bin.js"),
+          fs.promises.unlink(
+            "./test_data/bundler/out_browser/rendered_image.png"
+          ),
+          fs.promises.unlink(
+            "./test_data/bundler/out_browser/use_image_bin.js"
+          ),
+          fs.promises.unlink(
+            "./test_data/bundler/out_browser/inside/sample.jpg"
+          ),
         ]);
+        await fs.promises.rmdir("./test_data/bundler/out_browser/inside");
+        await fs.promises.rmdir("./test_data/bundler/out_browser");
       },
     },
   ],

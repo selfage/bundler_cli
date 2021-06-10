@@ -1,4 +1,5 @@
 import imagePath = require("./inside/sample.jpg");
+import path = require("path");
 import { foo } from "./base";
 import { E } from "@selfage/element/factory";
 import { PUPPETEER_TEST_RUNNER } from "@selfage/test_runner";
@@ -18,7 +19,7 @@ PUPPETEER_TEST_RUNNER.run({
           )
         );
 
-        await screenshot(__dirname + "/rendered_image.png", 500);
+        await screenshot(path.join(__dirname, "/rendered_image.png"), 500);
       },
     },
   ],
