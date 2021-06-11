@@ -64,12 +64,7 @@ export async function executeInPuppeteer(
         } else if (msg.text().startsWith(DELETE)) {
           let relativePath = msg.text().replace(DELETE, "");
           let file = path.join(baseDir, relativePath);
-          try {
-            await fs.promises.unlink(file);
-          } catch (e) {
-            // Failure is acceptable.
-            console.log(e);
-          }
+          await fs.promises.unlink(file);
         } else {
           if (outputToConsole) {
             console.log(msg.text());
