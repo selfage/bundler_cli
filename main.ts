@@ -250,7 +250,7 @@ function main(): void {
         `them not compatible with bundling. It will also bundle web apps ` +
         `based on <entriesConfigFile> as well as <baseDir>. Finally, all ` +
         `bundled files and imported or extra assets will be copied from ` +
-        `<fromDir> to <toDir>, without any source file or intermediate file..`
+        `<fromDir> to <toDir>, without any source file or intermediate file.`
     )
     .option(ENTRIES_CONFIG_FILE_OPTION[0], ENTRIES_CONFIG_FILE_OPTION[1])
     .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
