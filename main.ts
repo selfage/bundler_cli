@@ -3,8 +3,8 @@ import fs = require("fs");
 import path = require("path");
 import {
   CommonBundleOptions,
-  bundleForBrowserReturnAssetFiles,
-  bundleForNodeReturnAssetFiles,
+  bundleForBrowser,
+  bundleForNode,
 } from "./bundler";
 import { executeInPuppeteer } from "./puppeteer_executor";
 import { runInNode } from "./runner_in_node";
@@ -12,9 +12,9 @@ import { runInPuppeteer } from "./runner_in_puppeteer";
 import {
   DEFAULT_BUNDLED_RESOURCES_FILE,
   DEFAULT_ENTRIES_CONFIG_FILE,
-  bundleWebAppsAndCopyFiles,
+  bundleWebApps,
 } from "./web_app_bundler";
-import { bundleWebServerAndCopyFiles } from "./web_server_bundler";
+import { bundleWebServer } from "./web_server_bundler";
 import { Command } from "commander";
 import "source-map-support/register";
 
@@ -55,11 +55,26 @@ let ENTRIES_CONFIG_FILE_OPTION = [
     `https://www.npmjs.com/package/@selfage/bundler_cli for its schema. ` +
     `If not provided, it will look for ./${DEFAULT_ENTRIES_CONFIG_FILE}.`,
 ];
+let FROM_DIR_OPTION = [
+  "-f, --from-dir <fromDir>",
+  `The directoy to copy from. If not provided, it will be the current ` +
+    `working directory.`,
+];
+let TO_DIR_OPTION = [
+  "-t, --to-dir <toDir>",
+  `The directoy to copy to. If not provided, or when <toDir> equals ` +
+    `<fromDir>, no copies happen.`,
+];
 let BASE_DIR_OPTION = [
   "-r, --base-dir <baseDir>",
   `The base directory that all imported assets should be relative to, such ` +
     `that a web server can serve files at this directory. If not provided, ` +
     `it will be the current working directory.`,
+];
+let OUT_DIR_OPTION = [
+  "-o, --out-dir <outDir>",
+  `The output directory to where files will be copied. If not provided, or ` +
+    `when <outDir> equals <baseDir>, no copies happen.`,
 ];
 let PORT_OPTION = [
   "-p, --port <port>",
@@ -81,6 +96,8 @@ function main(): void {
         `and .js respectively. Npm modules are not actually bundled due to ` +
         `many of them not compatible with bundling.`
     )
+    .option(FROM_DIR_OPTION[0], FROM_DIR_OPTION[1])
+    .option(TO_DIR_OPTION[0], TO_DIR_OPTION[1])
     .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
     .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
     .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
@@ -88,9 +105,11 @@ function main(): void {
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .action(async (sourceFile, outputFile, options) => {
-      await bundleForNodeReturnAssetFiles(
+      await bundleForNode(
         sourceFile as string,
         outputFile as string,
+        options.fromDir as string,
+        options.toDir as string,
         options as CommonBundleOptions
       );
     });
@@ -125,6 +144,7 @@ function main(): void {
         `.ts and .js respectively.`
     )
     .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
+    .option(OUT_DIR_OPTION[0], OUT_DIR_OPTION[1])
     .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
     .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
     .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
@@ -132,10 +152,11 @@ function main(): void {
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .action(async (sourceFile, outputFile, options) => {
-      await bundleForBrowserReturnAssetFiles(
+      await bundleForBrowser(
         sourceFile as string,
         outputFile as string,
         options.baseDir as string,
+        options.outDir as string,
         options as CommonBundleOptions
       );
     });
@@ -203,11 +224,7 @@ function main(): void {
         `./${DEFAULT_BUNDLED_RESOURCES_FILE}.`
     )
     .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
-    .option(
-      "-o, --out-dir <outDir>",
-      `The output directory to where files will be copied. If not provided, ` +
-        `or when <outDir> equals <baseDir>, no copies happen.`
-    )
+    .option(OUT_DIR_OPTION[0], OUT_DIR_OPTION[1])
     .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
     .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
     .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
@@ -215,7 +232,7 @@ function main(): void {
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .action((options) =>
-      bundleWebAppsAndCopyFiles(
+      bundleWebApps(
         options.entriesConfigFile as string,
         options.bundledResourcesFile as string,
         options.baseDir as string,
@@ -237,16 +254,8 @@ function main(): void {
     )
     .option(ENTRIES_CONFIG_FILE_OPTION[0], ENTRIES_CONFIG_FILE_OPTION[1])
     .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
-    .option(
-      "-f, --from-dir <fromDir>",
-      `The directoy to copy from. If not provided, it will be the current ` +
-        `working directory.`
-    )
-    .option(
-      "-t, --to-dir <toDir>",
-      `The directoy to copy to. If not provided, or when <toDir> equals ` +
-        `<fromDir>, no copies happen.`
-    )
+    .option(FROM_DIR_OPTION[0], FROM_DIR_OPTION[1])
+    .option(TO_DIR_OPTION[0], TO_DIR_OPTION[1])
     .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
     .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
     .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
@@ -254,7 +263,7 @@ function main(): void {
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .action((serverSourceFile, serverOutputFile, options) =>
-      bundleWebServerAndCopyFiles(
+      bundleWebServer(
         serverSourceFile as string,
         serverOutputFile as string,
         options.entriesConfigFile as string,

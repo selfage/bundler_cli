@@ -1,7 +1,4 @@
-import {
-  CommonBundleOptions,
-  bundleForBrowserReturnAssetFiles,
-} from "./bundler";
+import { CommonBundleOptions, bundleForBrowser } from "./bundler";
 import { executeInPuppeteer } from "./puppeteer_executor";
 import { stripFileExtension } from "@selfage/cli/io_helper";
 
@@ -13,6 +10,6 @@ export async function runInPuppeteer(
   args: Array<string> = []
 ): Promise<void> {
   let binFile = stripFileExtension(sourceFile) + "_bin.js";
-  await bundleForBrowserReturnAssetFiles(sourceFile, binFile, baseDir, options);
+  await bundleForBrowser(sourceFile, binFile, baseDir, baseDir, options);
   await executeInPuppeteer(binFile, baseDir, true, port, args);
 }

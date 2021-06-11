@@ -1,5 +1,5 @@
 import fs = require("fs");
-import { bundleWebServerAndCopyFiles } from "./web_server_bundler";
+import { bundleWebServer } from "./web_server_bundler";
 import { assertThat, containStr } from "@selfage/test_matcher";
 import { TEST_RUNNER } from "@selfage/test_runner";
 import { spawnSync } from "child_process";
@@ -15,7 +15,7 @@ TEST_RUNNER.run({
       name: "BundleAndCopy",
       execute: async () => {
         // Execute
-        await bundleWebServerAndCopyFiles(
+        await bundleWebServer(
           "./test_data/web_server_bundler/be/main",
           "./test_data/web_server_bundler/be/index",
           "./test_data/web_server_bundler/entries.json",

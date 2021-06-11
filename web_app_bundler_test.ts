@@ -3,7 +3,7 @@ import expressStaticGzip = require("express-static-gzip");
 import fs = require("fs");
 import http = require("http");
 import puppeteer = require("puppeteer");
-import { bundleWebAppsAndCopyFiles } from "./web_app_bundler";
+import { bundleWebApps } from "./web_app_bundler";
 import { assertThat, eq } from "@selfage/test_matcher";
 import { TEST_RUNNER } from "@selfage/test_runner";
 
@@ -64,7 +64,7 @@ TEST_RUNNER.run({
       name: "BundleAndCopy",
       execute: async () => {
         // Execute
-        await bundleWebAppsAndCopyFiles(
+        await bundleWebApps(
           "./test_data/web_app_bundler/other/entries.json",
           "./test_data/web_app_bundler/other/bundled_resources.json",
           "./test_data/web_app_bundler",

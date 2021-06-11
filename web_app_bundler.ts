@@ -16,14 +16,18 @@ let pipeline = util.promisify(stream.pipeline);
 export let DEFAULT_ENTRIES_CONFIG_FILE = "web_app_entries.json";
 export let DEFAULT_BUNDLED_RESOURCES_FILE = "web_app_resources.json";
 
-export async function bundleWebAppsAndCopyFiles(
+export async function bundleWebApps(
   entriesConfigFile = DEFAULT_ENTRIES_CONFIG_FILE,
   bundledResourcesFile = DEFAULT_BUNDLED_RESOURCES_FILE,
   baseDir = ".",
   outDir = ".",
   options?: CommonBundleOptions
 ): Promise<void> {
-  let allFiles = await bundleWebApps(entriesConfigFile, baseDir, options);
+  let allFiles = await bundleWebAppsAndReturnBundledResources(
+    entriesConfigFile,
+    baseDir,
+    options
+  );
   let allRelativeFiles = allFiles.map((file) =>
     path.relative(path.dirname(bundledResourcesFile), file)
   );
@@ -38,7 +42,7 @@ export async function bundleWebAppsAndCopyFiles(
   await copyFiles(allFiles, baseDir, outDir);
 }
 
-export async function bundleWebApps(
+export async function bundleWebAppsAndReturnBundledResources(
   entriesConfigFile: string,
   baseDir: string,
   options?: CommonBundleOptions
