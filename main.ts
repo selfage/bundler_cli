@@ -49,7 +49,7 @@ let TSCONFIG_FILE_OPTION = [
     `it at the current working directory.`,
 ];
 let ENTRIES_CONFIG_FILE_OPTION = [
-  "-m, --entries-config-file <entriesConfigFile>",
+  "-ec, --entries-config-file <entriesConfigFile>",
   `A config file to specify a list of entry files, each of which should ` +
     `be a single page application. See ` +
     `https://www.npmjs.com/package/@selfage/bundler_cli for its schema. ` +
@@ -66,7 +66,7 @@ let TO_DIR_OPTION = [
     `<fromDir>, no copies happen.`,
 ];
 let BASE_DIR_OPTION = [
-  "-r, --base-dir <baseDir>",
+  "-b, --base-dir <baseDir>",
   `The base directory that all imported assets should be relative to, such ` +
     `that a web server can serve files at this directory. If not provided, ` +
     `it will be the current working directory.`,
