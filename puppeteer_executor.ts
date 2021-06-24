@@ -108,12 +108,7 @@ export async function executeInPuppeteer(
       resolve();
     });
   });
-  try {
-    await page.goto(`http://${HOST_NAME}:${port}/selfage_temp_bin.html`);
-  } catch (e) {
-    // Sometimes the connection is broken too soon.
-    console.error(e.stack);
-  }
+  await page.goto(`http://${HOST_NAME}:${port}/selfage_temp_bin.html`);
   await executePromise;
   return outputCollection;
 }
