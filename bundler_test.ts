@@ -1,7 +1,7 @@
 import fs = require("fs");
 import { bundleForBrowser, bundleForNode } from "./bundler";
 import { executeInPuppeteer } from "./puppeteer_executor";
-import { assert, assertThat, containStr, eqArray } from "@selfage/test_matcher";
+import { assertThat, containStr, eqArray } from "@selfage/test_matcher";
 import { TEST_RUNNER } from "@selfage/test_runner";
 import { SpawnSyncReturns, spawnSync } from "child_process";
 
@@ -279,56 +279,30 @@ TEST_RUNNER.run({
           "./test_data/bundler/out_browser",
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
-            assetExts: [".jpg"],
-            skipMinify: true,
+            assetExts: [".jpg", ".png"],
           }
         );
 
         // Verify
-        let goldenImage = await fs.promises.readFile(
-          "./test_data/bundler/golden_image.png"
-        );
         await executeInPuppeteer(
           "./test_data/bundler/use_image_bin.js",
           "./test_data/bundler"
         );
-        let image1 = await fs.promises.readFile(
-          "./test_data/bundler/rendered_image.png"
-        );
-        // If failed, compare the two iamges and either make rendered_image.png
-        // the new golden_image.png, or delete rendered_image.png.
-        assert(
-          image1.equals(goldenImage),
-          "image1 to be the same as goldenImage",
-          "not"
-        );
-
         await executeInPuppeteer(
           "./test_data/bundler/out_browser/use_image_bin.js",
           "./test_data/bundler/out_browser"
         );
-        let image2 = await fs.promises.readFile(
-          "./test_data/bundler/out_browser/rendered_image.png"
-        );
-        // If failed, compare the two iamges and either make rendered_image.png
-        // the new golden_image.png, or delete rendered_image.png.
-        assert(
-          image2.equals(goldenImage),
-          "image2 to be the same as goldenImage",
-          "not"
-        );
 
         // Cleanup
         await Promise.all([
-          fs.promises.unlink("./test_data/bundler/rendered_image.png"),
           fs.promises.unlink("./test_data/bundler/base.js"),
           fs.promises.unlink("./test_data/bundler/use_image.js"),
           fs.promises.unlink("./test_data/bundler/use_image_bin.js"),
           fs.promises.unlink(
-            "./test_data/bundler/out_browser/rendered_image.png"
+            "./test_data/bundler/out_browser/use_image_bin.js"
           ),
           fs.promises.unlink(
-            "./test_data/bundler/out_browser/use_image_bin.js"
+            "./test_data/bundler/out_browser/golden_image.png"
           ),
           fs.promises.unlink(
             "./test_data/bundler/out_browser/inside/sample.jpg"

@@ -208,17 +208,15 @@ Note that `--debug` doesn't guarantee stack traces will be mapped to TypeScript 
 
 ## Puppeteer executor environment
 
-[Puppetter](https://www.npmjs.com/package/puppeteer) is essentially a headless Chrome. The term "Puppeteer executor environment" refers to the runtime environment provided by `$ bundage prun` or `$ bundage pexe` which is based on Puppeteer but with some additional APIs.
+[Puppetter](https://www.npmjs.com/package/puppeteer) is essentially a headless Chrome. The term "Puppeteer executor environment" refers to the runtime environment provided by `$ bundage prun` or `$ bundage pexe` which is based on Puppeteer and provides APIs for testing purposes within browser context.
 
 ### Pass-through arguments
 
 Pass-through arguments are made available by writing them to the temp HTML file, which can then be accessed by the JS code running in it. See [@selfage/puppeteer_executor_api#access-argv](https://github.com/selfage/puppeteer_executor_api#access-argv) for more details.
 
-### Command APIs
+### Function APIs
 
-Command APIs are quite primitive by simply logging special "commands" via `console.log()`. Logging events are exposed by Puppeteer and are listened to by `$ bundage prun` or `$ bundage pexe`, which then looks for those special strings and performs actions that are normally prohibited in browser environment, such as writing files.
-
-See [@selfage/puppeteer_executor_api#command-apis](https://github.com/selfage/puppeteer_executor_api#command-apis) for all available APIs.
+Functions are made avaialble thanks to Puppeteer's `exposeFunction`. See [@selfage/puppeteer_executor_api#all-apis](https://github.com/selfage/puppeteer_executor_api#all-apis) for all available APIs.
 
 ## General API access
 

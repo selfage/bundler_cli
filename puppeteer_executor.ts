@@ -6,7 +6,6 @@ import puppeteer = require("puppeteer");
 import stream = require("stream");
 import util = require("util");
 import { stripFileExtension } from "@selfage/cli/io_helper";
-import { DELETE, EXIT, SCREENSHOT } from "@selfage/puppeteer_executor_api/cmds";
 let pipeline = util.promisify(stream.pipeline);
 
 let HOST_NAME = "localhost";
@@ -50,87 +49,121 @@ export async function executeInPuppeteer(
 
   let browser = await puppeteer.launch();
   let page = await browser.newPage();
+  page.exposeFunction(
+    "screenshot",
+    async (
+      relativePath: string,
+      options: {
+        delay?: number; // ms
+        fullPage?: boolean;
+        quality?: number;
+      }
+    ): Promise<string> => {
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, options.delay ?? 0);
+      });
+      let file = path.join(baseDir, relativePath);
+      let fileType: "png" | "jpeg";
+      if (path.extname(relativePath) === ".png") {
+        fileType = "png";
+      } else {
+        fileType = "jpeg";
+      }
+      return ((await page.screenshot({
+        path: file,
+        type: fileType,
+        quality: options.quality,
+        fullPage: options.fullPage,
+        omitBackground: true,
+      })) as Buffer).toString("base64");
+    }
+  );
+  page.exposeFunction(
+    "fileExists",
+    async (relativePath: string): Promise<boolean> => {
+      let file = path.join(baseDir, relativePath);
+      try {
+        await fs.promises.stat(file);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+  );
+  page.exposeFunction(
+    "readFile",
+    async (relativePath: string): Promise<string> => {
+      let file = path.join(baseDir, relativePath);
+      return await fs.promises.readFile(file, "base64");
+    }
+  );
+  page.exposeFunction(
+    "deleteFile",
+    async (relativePath: string): Promise<void> => {
+      let file = path.join(baseDir, relativePath);
+      await fs.promises.unlink(file);
+    }
+  );
+  page.exposeFunction(
+    "setViewport",
+    async (width: number, height: number): Promise<void> => {
+      await page.setViewport({ width: width, height: height });
+    }
+  );
+
   let outputCollection: OutputCollection = {
     log: [],
     warn: [],
     error: [],
     other: [],
   };
-  let executePromise = new Promise<void>((resolve) => {
-    page.on("console", async (msg) => {
-      let output = await consoleMsgToString(msg);
-      if (msg.type() === "log") {
-        if (msg.text() === EXIT) {
-          await shutDown(browser, server, tempBinFile);
-          resolve();
-        } else if (msg.text().startsWith(SCREENSHOT)) {
-          let relativePath = msg.text().replace(SCREENSHOT, "");
-          let file = path.join(baseDir, relativePath);
-          await page.screenshot({ path: file, omitBackground: true });
-        } else if (msg.text().startsWith(DELETE)) {
-          let relativePath = msg.text().replace(DELETE, "");
-          let file = path.join(baseDir, relativePath);
-          await fs.promises.unlink(file);
-        } else {
-          if (outputToConsole) {
-            console.log(output);
-          }
-          outputCollection.log.push(output);
-        }
-      } else if (msg.type() === "info") {
-        if (outputToConsole) {
-          console.info(output);
-        }
-        outputCollection.log.push(output);
-      } else if (msg.type() === "warning") {
-        if (outputToConsole) {
-          console.warn(output);
-        }
-        outputCollection.warn.push(output);
-      } else if (msg.type() === "error") {
-        if (outputToConsole) {
-          console.error(output);
-        }
-        outputCollection.error.push(output);
-      } else {
-        if (outputToConsole) {
-          console.log(`${msg.type()}: ${output}`);
-        }
-        outputCollection.other.push(`${msg.type()}: ${output}`);
-      }
+  let exitCodePromise = new Promise<number>((resolve) => {
+    page.exposeFunction("exit", (): void => {
+      resolve(0);
     });
     page.on("pageerror", async (err) => {
-      await shutDown(browser, server, tempBinFile);
       if (outputToConsole) {
         console.error(err.message);
       }
       outputCollection.error.push(err.message);
-      resolve();
+      resolve(2);
     });
   });
+  page.on("console", async (msg) => {
+    let text = await interpretMsg(msg);
+    if (msg.type() === "log" || msg.type() === "info") {
+      if (outputToConsole) {
+        console.log(text);
+      }
+      outputCollection.log.push(text);
+    } else if (msg.type() === "warning") {
+      if (outputToConsole) {
+        console.warn(text);
+      }
+      outputCollection.warn.push(text);
+    } else if (msg.type() === "error") {
+      if (outputToConsole) {
+        console.error(text);
+      }
+      outputCollection.error.push(text);
+    } else {
+      if (outputToConsole) {
+        console.log(`${msg.type()}: ${text}`);
+      }
+      outputCollection.other.push(`${msg.type()}: ${text}`);
+    }
+  });
   await page.goto(`http://${HOST_NAME}:${port}/selfage_temp_bin.html`);
-  await executePromise;
-  return outputCollection;
-}
 
-async function consoleMsgToString(
-  msg: puppeteer.ConsoleMessage
-): Promise<string> {
-  if (msg.args().length > 0) {
-    let args = await Promise.all(
-      msg.args().map((arg) => {
-        return arg.executionContext().evaluate((arg: any) => {
-          if (arg instanceof Error) {
-            return arg.stack;
-          }
-          return `${arg}`;
-        }, arg);
-      })
-    );
-    return util.format(...args);
-  } else {
-    return msg.text();
-  }
+  process.exitCode = await exitCodePromise;
+  await Promise.all([
+    browser.close(),
+    new Promise<void>((resolve) => {
+      server.close(() => resolve());
+    }),
+    fs.promises.unlink(tempBinFile),
+  ]);
+  return outputCollection;
 }
 
 async function serveFile(
@@ -156,16 +189,20 @@ async function serveFile(
   return pipeline(fs.createReadStream(file), response);
 }
 
-async function shutDown(
-  browser: puppeteer.Browser,
-  server: http.Server,
-  tempBinFile: string
-): Promise<void> {
-  await Promise.all([
-    browser.close(),
-    new Promise<void>((resolve) => {
-      server.close(() => resolve());
-    }),
-    fs.promises.unlink(tempBinFile),
-  ]);
+async function interpretMsg(msg: puppeteer.ConsoleMessage): Promise<string> {
+  if (msg.args().length > 0) {
+    let args = (await Promise.all(
+      msg.args().map((arg) => {
+        return arg.executionContext().evaluate((arg: any) => {
+          if (arg instanceof Error) {
+            return arg.stack;
+          }
+          return `${arg}`;
+        }, arg);
+      })
+    )) as Array<string>;
+    return util.format(...args);
+  } else {
+    return msg.text();
+  }
 }

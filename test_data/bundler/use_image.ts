@@ -1,8 +1,10 @@
+import goldenImagePath = require("./golden_image.png");
 import imagePath = require("./inside/sample.jpg");
 import { foo } from "./base";
 import { E } from "@selfage/element/factory";
+import { assertThat, eq } from "@selfage/test_matcher";
 import { PUPPETEER_TEST_RUNNER } from "@selfage/test_runner";
-import { screenshot } from "@selfage/test_runner/screenshot";
+import "@selfage/puppeteer_executor_api";
 
 PUPPETEER_TEST_RUNNER.run({
   name: "UseImageTest",
@@ -10,6 +12,7 @@ PUPPETEER_TEST_RUNNER.run({
     {
       name: "Screenshot",
       execute: async () => {
+        // Execute
         document.body.appendChild(
           E.div(
             'class="body"',
@@ -18,11 +21,17 @@ PUPPETEER_TEST_RUNNER.run({
           )
         );
 
-        let renderedImagePath =
-          __dirname +
-          (__dirname.endsWith("/") ? "" : "/") +
-          "rendered_image.png";
-        await screenshot(renderedImagePath, 500);
+        // Verify
+        let [rendered, golden] = await Promise.all([
+          globalThis.screenshot(__dirname + "/rendered_image.png", {
+            delay: 500,
+          }),
+          globalThis.readFile(goldenImagePath),
+        ]);
+        assertThat(rendered, eq(golden), "screenshot");
+
+        // Cleanup
+        await globalThis.deleteFile(__dirname + "/rendered_image.png");
       },
     },
   ],
