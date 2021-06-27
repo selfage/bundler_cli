@@ -41,7 +41,7 @@ Usage: bundage bundleForBrowser|bfb [options] <sourceFile> <outputFile>
 Compile and bundle from a TypeScript source file that can be run in Browser. Both file exts can be neglected and are always fixed as .ts and .js respectively.
 
 Options:
-  -r, --base-dir <baseDir>           The base directory that all imported assets should be relative to, such that a web server can serve files at
+  -b, --base-dir <baseDir>           The base directory that all imported assets should be relative to, such that a web server can serve files at
                                      this directory. If not provided, it will be the current working directory.
   -o, --out-dir <outDir>             The output directory to where files will be copied. If not provided, or when <outDir> equals <baseDir>, no
                                      copies happen.
@@ -89,7 +89,7 @@ Usage: bundage runInPuppeteer|prun [options] <sourceFile>
 Compile and bundle from a TypeScript source file, and run the bundled JavaScript file in Puppeteer, i.e., headless Chrome. The file ext can be neglected and is always fixed as .ts. Pass through arguments to the exectuable file after --.
 
 Options:
-  -r, --base-dir <baseDir>           The base directory that all imported assets should be relative to, such that a web server can serve files at
+  -b, --base-dir <baseDir>           The base directory that all imported assets should be relative to, such that a web server can serve files at
                                      this directory. If not provided, it will be the current working directory.
   -e, --extra-files <extraFiles...>  Extra TypeScript files to be bundled together with and before the source file.
   -i, --inline-js <inlineJs...>      Inline JavaScript code to be bundled together with and before all files.
@@ -114,7 +114,7 @@ Usage: bundage executeInPuppeteer|pexe [options] <binFile>
 Execute the presumably bundled JavaScript file in Puppeteer, i.e., headless Chrome. The file ext can be neglected and is always fixed as .js. Pass through arguments to the exectuable file after --.
 
 Options:
-  -r, --base-dir <baseDir>  The base directory that all imported assets should be relative to, such that a web server can serve files at this
+  -b, --base-dir <baseDir>  The base directory that all imported assets should be relative to, such that a web server can serve files at this
                             directory. If not provided, it will be the current working directory.
   -p, --port <port>         The port number to start your local server. Default to 8000.
   -h, --help                display help for command
@@ -136,10 +136,10 @@ Options:
   -m, --entries-config-file <entriesConfigFile>        A config file to specify a list of entry files, each of which should be a single page
                                                        application. See https://www.npmjs.com/package/@selfage/bundler_cli for its schema. If not
                                                        provided, it will look for ./web_app_entries.json.
-  -b, --bundled-resources-file <bundledResourcesFile>  An output file generated after bundling, containing a JSON array of files that need to be
+  -br, --bundled-resources-file <bundledResourcesFile>  An output file generated after bundling, containing a JSON array of files that need to be
                                                        copied to <outDir> and served in your web server. If not provided, it will write to
                                                        ./web_app_resources.json.
-  -r, --base-dir <baseDir>                             The base directory that all imported assets should be relative to, such that a web server
+  -b, --base-dir <baseDir>                             The base directory that all imported assets should be relative to, such that a web server
                                                        can serve files at this directory. If not provided, it will be the current working
                                                        directory.
   -o, --out-dir <outDir>                               The output directory to where files will be copied. If not provided, or when <outDir>
@@ -173,7 +173,7 @@ Options:
   -m, --entries-config-file <entriesConfigFile>  A config file to specify a list of entry files, each of which should be a single page
                                                  application. See https://www.npmjs.com/package/@selfage/bundler_cli for its schema. If not
                                                  provided, it will look for ./web_app_entries.json.
-  -r, --base-dir <baseDir>                       The base directory that all imported assets should be relative to, such that a web server can
+  -b, --base-dir <baseDir>                       The base directory that all imported assets should be relative to, such that a web server can
                                                  serve files at this directory. If not provided, it will be the current working directory.
   -f, --from-dir <fromDir>                       The directoy to copy from. If not provided, it will be the current working directory.
   -t, --to-dir <toDir>                           The directoy to copy to. If not provided, or when <toDir> equals <fromDir>, no copies happen.

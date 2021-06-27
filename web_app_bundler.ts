@@ -71,8 +71,10 @@ export async function bundleWebAppsAndReturnBundledResources(
   for (let files of allFiles) {
     flattenedFiles.push(...files);
   }
-  for (let extraAsset of webAppEntries.extraAssets) {
-    flattenedFiles.push(path.join(configDir, extraAsset));
+  if (webAppEntries.extraAssets) {
+    for (let extraAsset of webAppEntries.extraAssets) {
+      flattenedFiles.push(path.join(configDir, extraAsset));
+    }
   }
   return flattenedFiles;
 }

@@ -217,7 +217,7 @@ function main(): void {
     )
     .option(ENTRIES_CONFIG_FILE_OPTION[0], ENTRIES_CONFIG_FILE_OPTION[1])
     .option(
-      "-b, --bundled-resources-file <bundledResourcesFile>",
+      "-br, --bundled-resources-file <bundledResourcesFile>",
       `An output file generated after bundling, containing a JSON array of ` +
         `files that need to be copied to <outDir> and served in your web ` +
         `server. If not provided, it will write to ` +
