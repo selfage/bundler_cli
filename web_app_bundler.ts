@@ -20,7 +20,7 @@ export async function bundleWebApps(
   entriesConfigFile = DEFAULT_ENTRIES_CONFIG_FILE,
   bundledResourcesFile = DEFAULT_BUNDLED_RESOURCES_FILE,
   baseDir = ".",
-  outDir = ".",
+  outDir = baseDir,
   options?: CommonBundleOptions
 ): Promise<void> {
   let allFiles = await bundleWebAppsAndReturnBundledResources(

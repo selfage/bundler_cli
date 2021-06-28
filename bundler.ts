@@ -30,7 +30,7 @@ export async function bundleForNode(
   sourceFile: string,
   outputFile: string,
   fromDir = ".",
-  toDir = ".",
+  toDir = fromDir,
   options?: CommonBundleOptions
 ): Promise<void> {
   let assetFiles = await bundleForNodeReturnAssetFiles(
@@ -62,7 +62,7 @@ export async function bundleForBrowser(
   sourceFile: string,
   outputFile: string,
   baseDir = ".",
-  outDir = ".",
+  outDir = baseDir,
   options?: CommonBundleOptions
 ): Promise<void> {
   let assetFiles = await bundleForBrowserReturnAssetFiles(

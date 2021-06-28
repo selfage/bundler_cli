@@ -13,7 +13,7 @@ export async function bundleWebServer(
   webAppEntriesConfigFile = DEFAULT_ENTRIES_CONFIG_FILE,
   webAppBaseDir = ".",
   fromDir = ".",
-  toDir = ".",
+  toDir = fromDir,
   options: CommonBundleOptions = {}
 ): Promise<void> {
   let baseDirFromServer = path.relative(
