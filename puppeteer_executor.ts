@@ -26,11 +26,12 @@ export async function executeInPuppeteer(
 ): Promise<OutputCollection> {
   let binJsFile = path.relative(baseDir, stripFileExtension(binFile) + ".js");
   let tempBinFile = path.join(baseDir, "selfage_temp_bin.html");
+  let argsStr = args.length === 0 ? `` : `"${args.join(`","`)}"`;
   let writeFilePromise = fs.promises.writeFile(
     tempBinFile,
     `<html>
   <body>
-    <script type="text/javascript">var argv = [${args.join(",")}];</script>
+    <script type="text/javascript">var argv = [${argsStr}];</script>
     <script type="text/javascript" src="/${binJsFile}"></script>
   </body>
 </html>`
