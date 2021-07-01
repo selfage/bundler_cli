@@ -118,8 +118,10 @@ export async function executeInPuppeteer(
     error: [],
     other: [],
   };
+  let exited = false;
   let exitCodePromise = new Promise<number>((resolve) => {
     page.exposeFunction("exit", (): void => {
+      exited = true;
       resolve(0);
     });
     page.on("pageerror", async (err) => {
@@ -127,36 +129,26 @@ export async function executeInPuppeteer(
         console.error(err.message);
       }
       outputCollection.error.push(err.message);
+      exited = true;
       resolve(2);
     });
   });
+  let lastConsoleMsgPromise = Promise.resolve();
   page.on("console", async (msg) => {
-    let text = await interpretMsg(msg);
-    if (msg.type() === "log" || msg.type() === "info") {
-      if (outputToConsole) {
-        console.log(text);
-      }
-      outputCollection.log.push(text);
-    } else if (msg.type() === "warning") {
-      if (outputToConsole) {
-        console.warn(text);
-      }
-      outputCollection.warn.push(text);
-    } else if (msg.type() === "error") {
-      if (outputToConsole) {
-        console.error(text);
-      }
-      outputCollection.error.push(text);
-    } else {
-      if (outputToConsole) {
-        console.log(`${msg.type()}: ${text}`);
-      }
-      outputCollection.other.push(`${msg.type()}: ${text}`);
+    if (exited) {
+      return;
     }
+    await lastConsoleMsgPromise;
+    lastConsoleMsgPromise = collectConsoleMsg(
+      msg,
+      outputToConsole,
+      outputCollection
+    );
   });
   await page.goto(`http://${HOST_NAME}:${port}/selfage_temp_bin.html`);
 
   process.exitCode = await exitCodePromise;
+  await lastConsoleMsgPromise;
   await Promise.all([
     browser.close(),
     new Promise<void>((resolve) => {
@@ -188,6 +180,35 @@ async function serveFile(
   }
   response.writeHead(200, { "Content-Type": contentType });
   return pipeline(fs.createReadStream(file), response);
+}
+
+async function collectConsoleMsg(
+  msg: puppeteer.ConsoleMessage,
+  outputToConsole: boolean,
+  outputCollection: OutputCollection
+): Promise<void> {
+  let text = await interpretMsg(msg);
+  if (msg.type() === "log" || msg.type() === "info") {
+    if (outputToConsole) {
+      console.log(text);
+    }
+    outputCollection.log.push(text);
+  } else if (msg.type() === "warning") {
+    if (outputToConsole) {
+      console.warn(text);
+    }
+    outputCollection.warn.push(text);
+  } else if (msg.type() === "error") {
+    if (outputToConsole) {
+      console.error(text);
+    }
+    outputCollection.error.push(text);
+  } else {
+    if (outputToConsole) {
+      console.log(`${msg.type()}: ${text}`);
+    }
+    outputCollection.other.push(`${msg.type()}: ${text}`);
+  }
 }
 
 async function interpretMsg(msg: puppeteer.ConsoleMessage): Promise<string> {
