@@ -114,13 +114,13 @@ function main(): void {
       );
     });
   program
-    .command("runInNode <sourceFile>")
+    .command("runInNode <sourceFile> [pass-through-args...]")
     .alias("nrun")
     .description(
       `Compile and bundle from a TypeScript source file, and run the bundled ` +
         `JavaScript file in Node. The file ext can be neglected and is ` +
-        `always fixed as .ts. Pass through arguments to the exectuable file ` +
-        `after --.`
+        `always fixed as .ts. "--" is needed in between <sourceFile> and ` +
+        `pass through arguments.`
     )
     .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
     .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
@@ -128,11 +128,11 @@ function main(): void {
     .option(SKIP_MINIFY_OPTION[0], SKIP_MINIFY_OPTION[1])
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
-    .action((sourceFile, options, extraArgs) =>
+    .action((sourceFile, passThroughArgs, options) =>
       runInNode(
         sourceFile as string,
         options as CommonBundleOptions,
-        extraArgs as Array<string>
+        passThroughArgs as Array<string>
       )
     );
   program
@@ -161,13 +161,13 @@ function main(): void {
       );
     });
   program
-    .command("runInPuppeteer <sourceFile>")
+    .command("runInPuppeteer <sourceFile> [pass-through-args...]")
     .alias("prun")
     .description(
       `Compile and bundle from a TypeScript source file, and run the bundled ` +
         `JavaScript file in Puppeteer, i.e., headless Chrome. The file ext ` +
-        `can be neglected and is always fixed as .ts. Pass through arguments ` +
-        `to the exectuable file after --.`
+        `can be neglected and is always fixed as .ts. "--" is needed in ` +
+        `between <sourceFile> and pass through arguments.`
     )
     .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
     .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
@@ -177,32 +177,33 @@ function main(): void {
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .option(PORT_OPTION[0], PORT_OPTION[1], (value) => parseInt(value, 10))
-    .action((sourceFile, options, extraArgs) =>
+    .action((sourceFile, passThroughArgs, options) =>
       runInPuppeteer(
         sourceFile as string,
         options.baseDir as string,
         options.port as number,
         options as CommonBundleOptions,
-        extraArgs as Array<string>
+        passThroughArgs as Array<string>
       )
     );
   program
-    .command("executeInPuppeteer <binFile>")
+    .command("executeInPuppeteer <binFile> [pass-through-args...]")
     .alias("pexe")
     .description(
       `Execute the presumably bundled JavaScript file in Puppeteer, i.e., ` +
         `headless Chrome. The file ext can be neglected and is always fixed ` +
-        `as .js. Pass through arguments to the exectuable file after --.`
+        `as .js. "--" is needed in between <BinFile> and pass through ` +
+        `arguments.`
     )
     .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
     .option(PORT_OPTION[0], PORT_OPTION[1], (value) => parseInt(value, 10))
-    .action(async (binFile, options, extraArgs) => {
+    .action(async (binFile, passThroughArgs, options) => {
       await executeInPuppeteer(
         binFile as string,
         options.baseDir as string,
         true,
         options.port as number,
-        extraArgs as Array<string>
+        passThroughArgs as Array<string>
       );
     });
   program
