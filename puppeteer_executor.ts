@@ -70,13 +70,15 @@ export async function executeInPuppeteer(
       } else {
         fileType = "jpeg";
       }
-      return ((await page.screenshot({
-        path: file,
-        type: fileType,
-        quality: options.quality,
-        fullPage: options.fullPage,
-        omitBackground: true,
-      })) as Buffer).toString("base64");
+      return (
+        (await page.screenshot({
+          path: file,
+          type: fileType,
+          quality: options.quality,
+          fullPage: options.fullPage,
+          omitBackground: true,
+        })) as Buffer
+      ).toString("base64");
     }
   );
   page.exposeFunction(
@@ -134,12 +136,12 @@ export async function executeInPuppeteer(
     });
   });
   let lastConsoleMsgPromise = Promise.resolve();
-  page.on("console", async (msg) => {
+  page.on("console", (msg) => {
     if (exited) {
       return;
     }
-    await lastConsoleMsgPromise;
-    lastConsoleMsgPromise = collectConsoleMsg(
+    lastConsoleMsgPromise = collectConsoleMsgAfterLastCollect(
+      lastConsoleMsgPromise,
       msg,
       outputToConsole,
       outputCollection
@@ -182,11 +184,13 @@ async function serveFile(
   return pipeline(fs.createReadStream(file), response);
 }
 
-async function collectConsoleMsg(
+async function collectConsoleMsgAfterLastCollect(
+  lastCollectPromise: Promise<void>,
   msg: puppeteer.ConsoleMessage,
   outputToConsole: boolean,
   outputCollection: OutputCollection
 ): Promise<void> {
+  await lastCollectPromise;
   let text = await interpretMsg(msg);
   if (msg.type() === "log" || msg.type() === "info") {
     if (outputToConsole) {
