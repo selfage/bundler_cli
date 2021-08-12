@@ -159,7 +159,7 @@ Options:
 
 ## Bundle web server
 
-If your server needs to serve other traffic than just SPAs, import `@selfage/bundler_cli/web_app_base_dir` which declares a global variable `WEB_APP_BASE_DIR`, then e.g. if you are using Express.js, you can write `express.static(globalThis.WEB_APP_BASE_DIR)`.
+If your server needs to serve other traffic than just SPAs, import `@selfage/web_app_base_dir` in your backend server file, which declares a global variable `WEB_APP_BASE_DIR`. Then e.g. if you are using Express.js, you can write `express.static(globalThis.WEB_APP_BASE_DIR)`.
 
 The global variable is only made available after calling `$ bundage bws` with its value populated as the `--base-dir` option you specified.
 
@@ -192,9 +192,9 @@ Options:
 
 ## Options explained
 
-### Environment file
+### Extra file
 
-See [this answer](https://stackoverflow.com/questions/38906359/create-a-global-variable-in-typescript/67040805#67040805) for how to properly create and use environment file with the help of globalThis.
+See [this answer](https://stackoverflow.com/questions/38906359/create-a-global-variable-in-typescript/67040805#67040805) for how to use extra files to properly define global `environment` variable with the help of globalThis.
 
 ### Asset files
 
