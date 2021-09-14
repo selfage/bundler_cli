@@ -133,9 +133,9 @@ Usage: bundage bundleWebApps|bwa [options]
 Bundle all TypeScript source files based on <entriesConfig>, generate HTML files pointing to the bundled JS files respectively, compress them with Gzip, collect a list of all bundled JS & HTML file paths and asset file paths to <bundledResources>, and finally copy those files into <outDir> where your web server can be started.
 
 Options:
-  -ec, --entries-config-file <entriesConfigFile>        A config file to specify a list of entry files, each of which should be a single page application. Its directory is the base that all
-                                                        imported assets should be relative to, and a web server can serve files at this directory. See
-                                                        https://www.npmjs.com/package/@selfage/bundler_cli for its schema. If not provided, it will look for ./web_app_entries.json.
+  -ec, --entries-config-file <entriesConfigFile>        A config file to specify a list of entry files, each of which should be a single page application. See
+                                                        https://www.npmjs.com/package/@selfage/bundler_cli for its schema. Its directory is the base that all imported assets should be relative to,
+                                                        and a web server can serve files at this directory. If not provided, it will look for ./web_app_entries.json.
   -br, --bundled-resources-file <bundledResourcesFile>  An output file generated after bundling, containing a JSON array of files that need to be copied to <outDir> and served in your web server.
                                                         If not provided, it will write to ./web_app_resources.json.
   -o, --out-dir <outDir>                                The output directory to where files will be copied. If not provided, or when <outDir> equals <baseDir>, no copies happen.
@@ -163,9 +163,9 @@ Usage: bundage bundleWebServer|bws [options] <serverSourceFile> <serverOutputFil
 Bundle a TypeScript source file as the server's main file and output. Both file exts can be neglected and are always fixed as .ts and .js respectively. Npm modules are not actually bundled due to many of them not compatible with bundling. It will also bundle web apps based on <entriesConfigFile> as well as <baseDir>. Finally, all bundled files and imported or extra assets will be copied from <fromDir> to <toDir>, without any source file or intermediate file.
 
 Options:
-  -ec, --entries-config-file <entriesConfigFile>  A config file to specify a list of entry files, each of which should be a single page application. Its directory is the base that all imported
-                                                  assets should be relative to, and a web server can serve files at this directory. See https://www.npmjs.com/package/@selfage/bundler_cli for its
-                                                  schema. If not provided, it will look for ./web_app_entries.json.
+  -ec, --entries-config-file <entriesConfigFile>  A config file to specify a list of entry files, each of which should be a single page application. See
+                                                  https://www.npmjs.com/package/@selfage/bundler_cli for its schema. Its directory is the base that all imported assets should be relative to, and a
+                                                  web server can serve files at this directory. If not provided, it will look for ./web_app_entries.json.
   -f, --from-dir <fromDir>                        The directoy to copy from. If not provided, it will be the current working directory.
   -t, --to-dir <toDir>                            The directoy to copy to. If not provided, or when <toDir> equals <fromDir>, no copies happen.
   -e, --extra-files <extraFiles...>               Extra TypeScript files to be bundled together with and before the source file.
