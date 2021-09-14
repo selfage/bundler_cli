@@ -11,11 +11,11 @@ export async function bundleWebServer(
   serverSourceFile: string,
   serverOutputFile: string,
   webAppEntriesConfigFile = DEFAULT_ENTRIES_CONFIG_FILE,
-  webAppBaseDir = ".",
   fromDir = ".",
   toDir = fromDir,
   options: CommonBundleOptions = {}
 ): Promise<void> {
+  let webAppBaseDir = path.dirname(webAppEntriesConfigFile);
   let baseDirFromServer = path.relative(
     path.dirname(serverOutputFile),
     webAppBaseDir

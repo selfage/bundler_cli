@@ -51,7 +51,9 @@ let TSCONFIG_FILE_OPTION = [
 let ENTRIES_CONFIG_FILE_OPTION = [
   "-ec, --entries-config-file <entriesConfigFile>",
   `A config file to specify a list of entry files, each of which should ` +
-    `be a single page application. See ` +
+    `be a single page application. Its directory is the base that all ` +
+    `imported assets should be relative to, and a web server can serve files ` +
+    `at this directory. See ` +
     `https://www.npmjs.com/package/@selfage/bundler_cli for its schema. ` +
     `If not provided, it will look for ./${DEFAULT_ENTRIES_CONFIG_FILE}.`,
 ];
@@ -224,7 +226,6 @@ function main(): void {
         `server. If not provided, it will write to ` +
         `./${DEFAULT_BUNDLED_RESOURCES_FILE}.`
     )
-    .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
     .option(OUT_DIR_OPTION[0], OUT_DIR_OPTION[1])
     .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
     .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
@@ -236,7 +237,6 @@ function main(): void {
       bundleWebApps(
         options.entriesConfigFile as string,
         options.bundledResourcesFile as string,
-        options.baseDir as string,
         options.outDir as string,
         options as CommonBundleOptions
       )
@@ -254,7 +254,6 @@ function main(): void {
         `<fromDir> to <toDir>, without any source file or intermediate file.`
     )
     .option(ENTRIES_CONFIG_FILE_OPTION[0], ENTRIES_CONFIG_FILE_OPTION[1])
-    .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
     .option(FROM_DIR_OPTION[0], FROM_DIR_OPTION[1])
     .option(TO_DIR_OPTION[0], TO_DIR_OPTION[1])
     .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
@@ -268,7 +267,6 @@ function main(): void {
         serverSourceFile as string,
         serverOutputFile as string,
         options.entriesConfigFile as string,
-        options.baseDir as string,
         options.fromDir as string,
         options.toDir as string,
         options as CommonBundleOptions

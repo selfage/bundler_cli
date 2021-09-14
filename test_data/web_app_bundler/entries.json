@@ -1,0 +1,15 @@
+{
+  "entries": [{
+    "source": "./main",
+    "output": "./index"
+  }, {
+    "source": "./not_found",
+    "output": "./404"
+  }, {
+    "source": "./inside/some",
+    "output": "./inside/some_bin"
+  }],
+  "extraAssets": [
+    "./inside/p5s_logo.png"
+  ]
+}

@@ -19,10 +19,10 @@ export let DEFAULT_BUNDLED_RESOURCES_FILE = "web_app_resources.json";
 export async function bundleWebApps(
   entriesConfigFile = DEFAULT_ENTRIES_CONFIG_FILE,
   bundledResourcesFile = DEFAULT_BUNDLED_RESOURCES_FILE,
-  baseDir = ".",
-  outDir = baseDir,
+  outDir?: string,
   options?: CommonBundleOptions
 ): Promise<void> {
+  let baseDir = path.dirname(entriesConfigFile);
   let allFiles = await bundleWebAppsAndReturnBundledResources(
     entriesConfigFile,
     baseDir,
@@ -36,7 +36,7 @@ export async function bundleWebApps(
     JSON.stringify(allRelativeFiles)
   );
 
-  if (path.normalize(outDir) === path.normalize(baseDir)) {
+  if (!outDir || path.normalize(outDir) === path.normalize(baseDir)) {
     return;
   }
   await copyFiles(allFiles, baseDir, outDir);

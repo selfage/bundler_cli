@@ -18,8 +18,7 @@ NODE_TEST_RUNNER.run({
         await bundleWebServer(
           "./test_data/web_server_bundler/be/main",
           "./test_data/web_server_bundler/be/index",
-          "./test_data/web_server_bundler/entries.json",
-          "./test_data/web_server_bundler/fe",
+          "./test_data/web_server_bundler/fe/entries.json",
           "./test_data/web_server_bundler",
           "./test_data/web_server_bundler/bin"
         );
