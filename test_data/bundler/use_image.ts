@@ -15,9 +15,9 @@ PUPPETEER_TEST_RUNNER.run({
         // Execute
         document.body.appendChild(
           E.div(
-            'class="body"',
-            E.image(`class="img" src="${imagePath}"`),
-            E.div('class="other"', E.text(`${foo()}`))
+            { class: "body" },
+            E.image({ class: "img", src: imagePath }),
+            E.div({ class: "other" }, E.text(`${foo()}`))
           )
         );
 
