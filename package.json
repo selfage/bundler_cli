@@ -45,7 +45,7 @@
     "@selfage/nested_error": "^1.0.6",
     "@selfage/puppeteer_test_executor_api": "^1.0.1",
     "@selfage/test_matcher": "^1.1.0",
-    "@selfage/test_runner": "^2.2.2",
+    "@selfage/test_runner": "^2.2.3",
     "@selfage/tsconfig": "^1.0.7",
     "@selfage/web_app_base_dir": "^1.0.0",
     "@types/browserify": "^12.0.36",
