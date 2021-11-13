@@ -76,11 +76,11 @@ Options:
   -d, --debug                        Include inline source map and inline source.
   -c, --tsconfig-file <file>         The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.
   -h, --help                         display help for command
-``` 
+```
 
 ## Run in Puppeteer
 
-This command makes it feels like running an exectuable TS/JS file in Node but actually in Puppeteer/headless Chrome environment. It bundles and runs the bundled JS file by writing a temp HTML file pointing to the JS file, starting a local server and registering file handlers to serve them. We expect your bundled JS file does all the UI work, creating HTML elements, setting CSS and etc.
+Based on [@selfage/puppeteer_test_executor](https://www.npmjs.com/package/@selfage/puppeteer_test_executor), it bundles and runs the bundled JS file in browser context with more powerful global functions. The bundled JS file is expected to include everything needed to render a page or bootstrap by loading other files.
 
 ```
 $ bundage prun -h
@@ -101,23 +101,6 @@ Options:
   -c, --tsconfig-file <file>         The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.
   -p, --port <port>                  The port number to start your local server. Default to 8000.
   -h, --help                         display help for command
-```
-
-## Execute in Puppeteer
-
-Used by `$ bundage prun` behind the scene. `$ bundage pexe` assumes you bundled it already by either `$ bundage bfb` or other bundlers.
-
-```
-$ bundage pexe -h
-Usage: bundage executeInPuppeteer|pexe [options] <binFile>
-
-Execute the presumably bundled JavaScript file in Puppeteer, i.e., headless Chrome. The file ext can be neglected and is always fixed as .js. Pass through arguments to the exectuable file after --.
-
-Options:
-  -b, --base-dir <baseDir>  The base directory that all imported assets should be relative to, such that a web server can serve files at this
-                            directory. If not provided, it will be the current working directory.
-  -p, --port <port>         The port number to start your local server. Default to 8000.
-  -h, --help                display help for command
 ```
 
 ## Bundle web apps
@@ -218,8 +201,6 @@ Each sub-command corresponds to an API as the following.
 `runInNode` -> `import { runInNode } from '@selfage/bundler_cli/runner_in_node';`
 
 `runInPuppeteer` -> `import { runInPuppeteer } from '@selfage/bundler_cli/runner_in_puppeteer';`
-
-`executeInPuppeteer` -> `import { executeInPuppeteer } from '@selfage/bundler_cli/puppeteer_executor';`
 
 `bundleWebApps` -> `import { bundleWebApps } from '@selfage/bundler_cli/web_apps_bundler';`
 
