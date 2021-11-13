@@ -4,7 +4,7 @@ import { foo } from "./base";
 import { E } from "@selfage/element/factory";
 import { assertThat, eq } from "@selfage/test_matcher";
 import { PUPPETEER_TEST_RUNNER } from "@selfage/test_runner";
-import "@selfage/puppeteer_executor_api";
+import "@selfage/puppeteer_test_executor_api";
 
 PUPPETEER_TEST_RUNNER.run({
   name: "UseImageTest",
@@ -22,16 +22,18 @@ PUPPETEER_TEST_RUNNER.run({
         );
 
         // Verify
+        let renderedImagePath = __dirname + "/rendered_image.png";
+        await screenshot(renderedImagePath, {
+          delay: 500,
+        });
         let [rendered, golden] = await Promise.all([
-          globalThis.screenshot(__dirname + "/rendered_image.png", {
-            delay: 500,
-          }),
-          globalThis.readFile(goldenImagePath),
+          readFile(renderedImagePath, "utf8"),
+          readFile(goldenImagePath, "utf8"),
         ]);
         assertThat(rendered, eq(golden), "screenshot");
 
         // Cleanup
-        await globalThis.deleteFile(__dirname + "/rendered_image.png");
+        await globalThis.deleteFile(renderedImagePath);
       },
     },
   ],

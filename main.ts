@@ -6,7 +6,6 @@ import {
   bundleForBrowser,
   bundleForNode,
 } from "./bundler";
-import { executeInPuppeteer } from "./puppeteer_executor";
 import { runInNode } from "./runner_in_node";
 import { runInPuppeteer } from "./runner_in_puppeteer";
 import {
@@ -188,26 +187,6 @@ function main(): void {
         passThroughArgs as Array<string>
       )
     );
-  program
-    .command("executeInPuppeteer <binFile> [pass-through-args...]")
-    .alias("pexe")
-    .description(
-      `Execute the presumably bundled JavaScript file in Puppeteer, i.e., ` +
-        `headless Chrome. The file ext can be neglected and is always fixed ` +
-        `as .js. "--" is needed in between <BinFile> and pass through ` +
-        `arguments.`
-    )
-    .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
-    .option(PORT_OPTION[0], PORT_OPTION[1], (value) => parseInt(value, 10))
-    .action(async (binFile, passThroughArgs, options) => {
-      await executeInPuppeteer(
-        binFile as string,
-        options.baseDir as string,
-        true,
-        options.port as number,
-        passThroughArgs as Array<string>
-      );
-    });
   program
     .command("bundleWebApps")
     .alias("bwa")

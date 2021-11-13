@@ -1,6 +1,6 @@
 import fs = require("fs");
 import { bundleForBrowser, bundleForNode } from "./bundler";
-import { executeInPuppeteer } from "./puppeteer_executor";
+import { execute as executeInPuppeteer } from "@selfage/puppeteer_test_executor";
 import { assertThat, containStr, eqArray } from "@selfage/test_matcher";
 import { NODE_TEST_RUNNER } from "@selfage/test_runner";
 import { SpawnSyncReturns, spawnSync } from "child_process";

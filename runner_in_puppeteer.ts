@@ -1,6 +1,6 @@
 import { CommonBundleOptions, bundleForBrowser } from "./bundler";
-import { executeInPuppeteer } from "./puppeteer_executor";
 import { stripFileExtension } from "@selfage/cli/io_helper";
+import { execute } from "@selfage/puppeteer_test_executor";
 
 export async function runInPuppeteer(
   sourceFile: string,
@@ -11,5 +11,5 @@ export async function runInPuppeteer(
 ): Promise<void> {
   let binFile = stripFileExtension(sourceFile) + "_bin.js";
   await bundleForBrowser(sourceFile, binFile, baseDir, baseDir, options);
-  await executeInPuppeteer(binFile, baseDir, true, port, args);
+  await execute(binFile, baseDir, true, port, args);
 }
