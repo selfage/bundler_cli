@@ -54,13 +54,12 @@
     "@types/uglify-js": "^3.13.1",
     "express": "^4.17.1",
     "express-static-gzip": "^2.1.1",
-    "puppeteer": "^11.0.0",
     "typescript": "^4.4.4"
   },
   "dependencies": {
     "@selfage/cli": "^2.3.2",
     "@selfage/message": "^2.0.1",
-    "@selfage/puppeteer_test_executor": "^1.2.1",
+    "@selfage/puppeteer_test_executor": "^2.0.0",
     "browserify": "^17.0.0",
     "commander": "^8.3.0",
     "get-stream": "^6.0.1",
