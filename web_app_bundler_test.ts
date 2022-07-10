@@ -5,7 +5,7 @@ import http = require("http");
 import puppeteer = require("puppeteer");
 import { bundleWebApps } from "./web_app_bundler";
 import { assertThat, eq } from "@selfage/test_matcher";
-import { NODE_TEST_RUNNER } from "@selfage/test_runner";
+import { TEST_RUNNER } from "@selfage/test_runner";
 
 let HOST_NAME = "localhost";
 let PORT = 8000;
@@ -57,7 +57,7 @@ async function unlink(...files: Array<string>) {
   await Promise.all(files.map((file) => fs.promises.unlink(file)));
 }
 
-NODE_TEST_RUNNER.run({
+TEST_RUNNER.run({
   name: "WebAppBundlerTest",
   cases: [
     {

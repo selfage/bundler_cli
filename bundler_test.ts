@@ -2,14 +2,14 @@ import fs = require("fs");
 import { bundleForBrowser, bundleForNode } from "./bundler";
 import { execute as executeInPuppeteer } from "@selfage/puppeteer_test_executor";
 import { assertThat, containStr, eqArray } from "@selfage/test_matcher";
-import { NODE_TEST_RUNNER } from "@selfage/test_runner";
+import { TEST_RUNNER } from "@selfage/test_runner";
 import { SpawnSyncReturns, spawnSync } from "child_process";
 
 function executeSync(jsFile: string): SpawnSyncReturns<string> {
   return spawnSync("node", [jsFile]);
 }
 
-NODE_TEST_RUNNER.run({
+TEST_RUNNER.run({
   name: "BundlerTest",
   cases: [
     {

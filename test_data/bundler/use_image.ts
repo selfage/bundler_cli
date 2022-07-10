@@ -3,10 +3,10 @@ import imagePath = require("./inside/sample.jpg");
 import { foo } from "./base";
 import { E } from "@selfage/element/factory";
 import { assertThat, eq } from "@selfage/test_matcher";
-import { PUPPETEER_TEST_RUNNER } from "@selfage/test_runner";
+import { TEST_RUNNER } from "@selfage/test_runner";
 import "@selfage/puppeteer_test_executor_api";
 
-PUPPETEER_TEST_RUNNER.run({
+TEST_RUNNER.run({
   name: "UseImageTest",
   cases: [
     {

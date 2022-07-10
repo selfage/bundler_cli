@@ -9,9 +9,6 @@ export interface WebAppEntry {
 
 export let WEB_APP_ENTRY: MessageDescriptor<WebAppEntry> = {
   name: 'WebAppEntry',
-  factoryFn: () => {
-    return new Object();
-  },
   fields: [
     {
       name: 'source',
@@ -32,23 +29,16 @@ export interface WebAppEntries {
 
 export let WEB_APP_ENTRIES: MessageDescriptor<WebAppEntries> = {
   name: 'WebAppEntries',
-  factoryFn: () => {
-    return new Object();
-  },
   fields: [
     {
       name: 'entries',
-      messageDescriptor: WEB_APP_ENTRY,
-      arrayFactoryFn: () => {
-        return new Array<any>();
-      },
+      messageType: WEB_APP_ENTRY,
+      isArray: true
     },
     {
       name: 'extraAssets',
       primitiveType: PrimitiveType.STRING,
-      arrayFactoryFn: () => {
-        return new Array<any>();
-      },
+      isArray: true
     },
   ]
 };
