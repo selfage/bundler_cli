@@ -23,17 +23,17 @@ TEST_RUNNER.run({
 
         // Verify
         let renderedImagePath = __dirname + "/rendered_image.png";
-        await screenshot(renderedImagePath, {
+        await puppeteerScreenshot(renderedImagePath, {
           delay: 500,
         });
         let [rendered, golden] = await Promise.all([
-          readFile(renderedImagePath, "utf8"),
-          readFile(goldenImagePath, "utf8"),
+          puppeteerReadFile(renderedImagePath, "utf8"),
+          puppeteerReadFile(goldenImagePath, "utf8"),
         ]);
         assertThat(rendered, eq(golden), "screenshot");
 
         // Cleanup
-        await globalThis.deleteFile(renderedImagePath);
+        await globalThis.puppeteerDeleteFile(renderedImagePath);
       },
     },
   ],

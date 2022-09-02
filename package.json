@@ -1,6 +1,6 @@
 {
   "name": "@selfage/bundler_cli",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "CLI for bundling and running bundled frontend or backend TypeScript files.",
   "repository": {
     "type": "git",
@@ -41,11 +41,11 @@
     ".gif"
   ],
   "devDependencies": {
-    "@selfage/element": "^3.1.5",
+    "@selfage/element": "^3.1.6",
     "@selfage/nested_error": "^1.0.6",
-    "@selfage/puppeteer_test_executor_api": "^1.3.1",
+    "@selfage/puppeteer_test_executor_api": "^3.0.2",
     "@selfage/test_matcher": "^1.1.2",
-    "@selfage/test_runner": "^3.0.1",
+    "@selfage/test_runner": "^4.0.0",
     "@selfage/tsconfig": "^1.0.7",
     "@selfage/web_app_base_dir": "^1.0.0",
     "@types/browserify": "^12.0.36",
@@ -58,8 +58,8 @@
   },
   "dependencies": {
     "@selfage/cli": "^4.0.0",
-    "@selfage/message": "^3.1.3",
-    "@selfage/puppeteer_test_executor": "^2.1.1",
+    "@selfage/message": "^3.1.7",
+    "@selfage/puppeteer_test_executor": "^3.0.2",
     "browserify": "^17.0.0",
     "commander": "^8.3.0",
     "get-stream": "^6.0.1",
