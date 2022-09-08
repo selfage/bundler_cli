@@ -1,6 +1,6 @@
 {
   "name": "@selfage/bundler_cli",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "CLI for bundling and running bundled frontend or backend TypeScript files.",
   "repository": {
     "type": "git",
@@ -59,7 +59,7 @@
   "dependencies": {
     "@selfage/cli": "^4.0.0",
     "@selfage/message": "^3.1.7",
-    "@selfage/puppeteer_test_executor": "^3.0.4",
+    "@selfage/puppeteer_test_executor": "^3.0.5",
     "browserify": "^17.0.0",
     "commander": "^8.3.0",
     "get-stream": "^6.0.1",
