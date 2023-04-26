@@ -2,9 +2,13 @@ import goldenImagePath = require("./golden_image.png");
 import imagePath = require("./inside/sample.jpg");
 import { foo } from "./base";
 import { E } from "@selfage/element/factory";
+import {
+  deleteFile,
+  readFile,
+  screenshot,
+} from "@selfage/puppeteer_test_executor/helper";
+import { TEST_RUNNER } from "@selfage/puppeteer_test_runner";
 import { assertThat, eq } from "@selfage/test_matcher";
-import { TEST_RUNNER } from "@selfage/test_runner";
-import "@selfage/puppeteer_test_executor_api";
 
 TEST_RUNNER.run({
   name: "UseImageTest",
@@ -23,17 +27,17 @@ TEST_RUNNER.run({
 
         // Verify
         let renderedImagePath = __dirname + "/rendered_image.png";
-        await puppeteerScreenshot(renderedImagePath, {
+        await screenshot(renderedImagePath, {
           delay: 500,
         });
         let [rendered, golden] = await Promise.all([
-          puppeteerReadFile(renderedImagePath, "utf8"),
-          puppeteerReadFile(goldenImagePath, "utf8"),
+          readFile(renderedImagePath, "utf8"),
+          readFile(goldenImagePath, "utf8"),
         ]);
         assertThat(rendered, eq(golden), "screenshot");
 
         // Cleanup
-        await globalThis.puppeteerDeleteFile(renderedImagePath);
+        await deleteFile(renderedImagePath);
       },
     },
   ],
