@@ -6,7 +6,7 @@ import {
   deleteFile,
   readFile,
   screenshot,
-} from "@selfage/puppeteer_test_executor/helper";
+} from "@selfage/puppeteer_test_executor_api";
 import { TEST_RUNNER } from "@selfage/puppeteer_test_runner";
 import { assertThat, eq } from "@selfage/test_matcher";
 
