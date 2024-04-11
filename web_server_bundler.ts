@@ -21,9 +21,8 @@ export async function bundleWebServer(
     webAppBaseDir,
   );
   options.inlineJs = options.inlineJs ?? new Array<string>();
-  // __dirname is OS dependent. Forcing it to be POSIX style.
   options.inlineJs.push(`let path = require("path");
-globalThis.WEB_APP_BASE_DIR = path.posix.join(...__dirname.split(path.sep), "${baseDirFromServer}");`);
+globalThis.WEB_APP_BASE_DIR = path.join(__dirname, "${baseDirFromServer}");`);
 
   let [serverAssetFiles, webAppFiles] = await Promise.all([
     bundleForNodeReturnAssetFiles(serverSourceFile, serverOutputFile, options),
