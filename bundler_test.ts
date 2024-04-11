@@ -1,13 +1,9 @@
 import fs = require("fs");
 import { bundleForBrowser, bundleForNode } from "./bundler";
 import { execute as executeInPuppeteer } from "@selfage/puppeteer_test_executor";
-import { assertThat, containStr, eqArray } from "@selfage/test_matcher";
+import { assert, assertThat, containStr } from "@selfage/test_matcher";
 import { TEST_RUNNER } from "@selfage/test_runner";
-import { SpawnSyncReturns, spawnSync } from "child_process";
-
-function executeSync(jsFile: string): SpawnSyncReturns<string> {
-  return spawnSync("node", [jsFile]);
-}
+import { execSync } from "child_process";
 
 TEST_RUNNER.run({
   name: "BundlerTest",
@@ -24,14 +20,14 @@ TEST_RUNNER.run({
           {
             inlineJs: [`globalThis.extra = "yes";`],
             tsconfigFile: "./test_data/bundler/tsconfig.json",
-          }
+          },
         );
 
         // Verify
         assertThat(
-          executeSync("./test_data/bundler/two_file_bin.js").stdout,
+          execSync("node ./test_data/bundler/two_file_bin.js").toString(),
           containStr("31yes"),
-          "output"
+          "output",
         );
 
         // Cleanup
@@ -55,14 +51,14 @@ TEST_RUNNER.run({
             inlineJs: [`globalThis.extra = "yes";`],
             tsconfigFile: "./test_data/bundler/tsconfig.json",
             skipMinify: true,
-          }
+          },
         );
 
         // Verify
         assertThat(
-          executeSync("./test_data/bundler/two_file_bin.js").stdout,
+          execSync("node ./test_data/bundler/two_file_bin.js").toString(),
           containStr("31yes"),
-          "output"
+          "output",
         );
 
         // Cleanup
@@ -82,15 +78,19 @@ TEST_RUNNER.run({
           "./test_data/bundler/stack_trace_bin.js",
           undefined,
           undefined,
-          { tsconfigFile: "./test_data/bundler/tsconfig.json", debug: true }
+          { tsconfigFile: "./test_data/bundler/tsconfig.json", debug: true },
         );
 
         // Verify
-        assertThat(
-          executeSync("./test_data/bundler/stack_trace_bin.js").stderr,
-          containStr("test_data/bundler/stack_trace.ts"),
-          "error output"
-        );
+        try {
+          execSync("node ./test_data/bundler/stack_trace_bin.js");
+        } catch (e) {
+          assert(
+            /test_data.bundler.stack_trace\.ts/.test((e as Error).message),
+            "the error message to contain test_data/bundler/stack_trace.ts",
+            (e as Error).message,
+          );
+        }
 
         // Cleanup
         await Promise.all([
@@ -111,14 +111,16 @@ TEST_RUNNER.run({
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
             extraFiles: ["./test_data/bundler/environment_dev.ts"],
-          }
+          },
         );
 
         // Verify
         assertThat(
-          executeSync("./test_data/bundler/try_environment_bin.js").stdout,
+          execSync(
+            "node ./test_data/bundler/try_environment_bin.js",
+          ).toString(),
           containStr("Something else"),
-          "output"
+          "output",
         );
 
         // Cleanup
@@ -142,14 +144,16 @@ TEST_RUNNER.run({
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
             extraFiles: ["./test_data/bundler/environment_prod.ts"],
-          }
+          },
         );
 
         // Verify
         assertThat(
-          executeSync("./test_data/bundler/try_environment_bin.js").stdout,
+          execSync(
+            "node ./test_data/bundler/try_environment_bin.js",
+          ).toString(),
           containStr("Prod!"),
-          "output"
+          "output",
         );
 
         // Cleanup
@@ -173,19 +177,21 @@ TEST_RUNNER.run({
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
             assetExts: [".txt"],
-          }
+          },
         );
 
         // Verify
         assertThat(
-          executeSync("./test_data/bundler/use_text_bin.js").stdout,
+          execSync("node ./test_data/bundler/use_text_bin.js").toString(),
           containStr("not\n:11"),
-          "original output"
+          "original output",
         );
         assertThat(
-          executeSync("./test_data/bundler/out_copy/use_text_bin.js").stdout,
+          execSync(
+            "node ./test_data/bundler/out_copy/use_text_bin.js",
+          ).toString(),
           containStr("not\n:11"),
-          "copied output"
+          "copied output",
         );
 
         // Cleanup
@@ -212,19 +218,21 @@ TEST_RUNNER.run({
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
             packageJsonFile: "./test_data/bundler/package.json",
-          }
+          },
         );
 
         // Verify
         assertThat(
-          executeSync("./test_data/bundler/use_text_bin.js").stdout,
+          execSync("node ./test_data/bundler/use_text_bin.js").toString(),
           containStr("not\n:11"),
-          "original output"
+          "original output",
         );
         assertThat(
-          executeSync("./test_data/bundler/out_pack/use_text_bin.js").stdout,
+          execSync(
+            "node ./test_data/bundler/out_pack/use_text_bin.js",
+          ).toString(),
           containStr("not\n:11"),
-          "copied output"
+          "copied output",
         );
 
         // Cleanup
@@ -248,17 +256,17 @@ TEST_RUNNER.run({
           "./test_data/bundler/stack_trace_bin.js",
           undefined,
           undefined,
-          { tsconfigFile: "./test_data/bundler/tsconfig.json", debug: true }
+          { tsconfigFile: "./test_data/bundler/tsconfig.json", debug: true },
         );
 
         // Verify
         let outputCollection = await executeInPuppeteer(
-          "./test_data/bundler/stack_trace_bin.js"
+          "./test_data/bundler/stack_trace_bin.js",
         );
-        assertThat(
-          outputCollection.error,
-          eqArray([containStr("test_data/bundler/stack_trace.ts")]),
-          "error output"
+        assert(
+          /test_data.bundler.stack_trace\.ts/.test(outputCollection.error[0]),
+          "the error message to contain test_data/bundler/stack_trace.ts",
+          outputCollection.error[0],
         );
 
         // Cleanup
@@ -280,17 +288,17 @@ TEST_RUNNER.run({
           {
             tsconfigFile: "./test_data/bundler/tsconfig.json",
             assetExts: [".jpg", ".png"],
-          }
+          },
         );
 
         // Verify
         await executeInPuppeteer(
           "./test_data/bundler/use_image_bin.js",
-          "./test_data/bundler"
+          "./test_data/bundler",
         );
         await executeInPuppeteer(
           "./test_data/bundler/out_browser/use_image_bin.js",
-          "./test_data/bundler/out_browser"
+          "./test_data/bundler/out_browser",
         );
 
         // Cleanup
@@ -299,13 +307,13 @@ TEST_RUNNER.run({
           fs.promises.unlink("./test_data/bundler/use_image.js"),
           fs.promises.unlink("./test_data/bundler/use_image_bin.js"),
           fs.promises.unlink(
-            "./test_data/bundler/out_browser/use_image_bin.js"
+            "./test_data/bundler/out_browser/use_image_bin.js",
           ),
           fs.promises.unlink(
-            "./test_data/bundler/out_browser/golden_image.png"
+            "./test_data/bundler/out_browser/golden_image.png",
           ),
           fs.promises.unlink(
-            "./test_data/bundler/out_browser/inside/sample.jpg"
+            "./test_data/bundler/out_browser/inside/sample.png",
           ),
         ]);
         await fs.promises.rmdir("./test_data/bundler/out_browser/inside");

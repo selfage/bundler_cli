@@ -1,5 +1,5 @@
 import goldenImagePath = require("./golden_image.png");
-import imagePath = require("./inside/sample.jpg");
+import imagePath = require("./inside/sample.png");
 import { foo } from "./base";
 import { E } from "@selfage/element/factory";
 import {

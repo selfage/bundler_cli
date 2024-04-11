@@ -2,7 +2,7 @@ import express = require("express");
 import expressStaticGzip = require("express-static-gzip");
 import fs = require("fs");
 import http = require("http");
-import puppeteer = require("puppeteer");
+import puppeteer = require("puppeteer-core");
 import { bundleWebApps } from "./web_app_bundler";
 import { assertThat, eq } from "@selfage/test_matcher";
 import { TEST_RUNNER } from "@selfage/test_runner";
@@ -22,8 +22,13 @@ function getFirstLog(page: puppeteer.Page): Promise<string> {
 async function verifyAllResourcesLoaded(
   dir: string,
   staticServeFn: Function,
-  page: puppeteer.Page
 ): Promise<void> {
+  let browser = await puppeteer.launch({
+    executablePath: process.env.CHROME,
+    headless: true
+  });
+  let page = await browser.newPage();
+
   let app = express();
   app.use("/", staticServeFn(dir, {}));
   let server = http.createServer(app);
@@ -48,6 +53,7 @@ async function verifyAllResourcesLoaded(
   await page.goto(`${BASE_URL}/inside/test_image.png`);
   await page.goto(`${BASE_URL}/inside/p5s_logo.png`);
 
+  await browser.close();
   await new Promise<void>((resolve) => {
     server.close(() => resolve());
   });
@@ -71,32 +77,25 @@ TEST_RUNNER.run({
         );
 
         // Verify
-        let browser = await puppeteer.launch();
-        let page = await browser.newPage();
         await verifyAllResourcesLoaded(
           "./test_data/web_app_bundler/out_dir",
-          express.static,
-          page
+          express.static
         );
         await verifyAllResourcesLoaded(
           "./test_data/web_app_bundler/out_dir",
           expressStaticGzip,
-          page
         );
         await verifyAllResourcesLoaded(
           "./test_data/web_app_bundler",
           express.static,
-          page
         );
         await verifyAllResourcesLoaded(
           "./test_data/web_app_bundler",
           expressStaticGzip,
-          page
         );
 
         // Verify & Cleanup
         await Promise.all([
-          browser.close(),
           unlink(
             "./test_data/web_app_bundler/index.html",
             "./test_data/web_app_bundler/index.html.gz",
@@ -130,6 +129,7 @@ TEST_RUNNER.run({
             "./test_data/web_app_bundler/out_dir/404.html.gz",
             "./test_data/web_app_bundler/out_dir/404.js",
             "./test_data/web_app_bundler/out_dir/404.js.gz",
+            "./test_data/web_app_bundler/out_dir/favicon.ico",
             "./test_data/web_app_bundler/out_dir/inside/some_bin.html",
             "./test_data/web_app_bundler/out_dir/inside/some_bin.html.gz",
             "./test_data/web_app_bundler/out_dir/inside/some_bin.js",

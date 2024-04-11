@@ -84,22 +84,21 @@ Based on [@selfage/puppeteer_test_executor](https://www.npmjs.com/package/@selfa
 
 ```
 $ bundage prun -h
-Usage: bundage runInPuppeteer|prun [options] <sourceFile>
+Usage: main runInPuppeteer|prun [options] <sourceFile> [pass-through-args...]
 
-Compile and bundle from a TypeScript source file, and run the bundled JavaScript file in Puppeteer, i.e., headless Chrome. The file ext can be neglected and is always fixed as .ts. Pass through arguments to the exectuable file after --.
+Compile and bundle from a TypeScript source file, and run the bundled JavaScript file in Puppeteer, i.e., headless Chrome. The file ext can be neglected and is always fixed as .ts. "--" is needed in between <sourceFile> and pass through arguments.
 
 Options:
-  -b, --base-dir <baseDir>           The base directory that all imported assets should be relative to, such that a web server can serve files at
-                                     this directory. If not provided, it will be the current working directory.
+  -b, --base-dir <baseDir>           The base directory that all imported assets should be relative to, such that a web server can serve files at this directory. If not provided, it will be the current working directory.
   -e, --extra-files <extraFiles...>  Extra TypeScript files to be bundled together with and before the source file.
   -i, --inline-js <inlineJs...>      Inline JavaScript code to be bundled together with and before all files.
-  -a, --asset-exts <assetExts...>    A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath =
-                                     require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not
-                                     provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
+  -a, --asset-exts <assetExts...>    A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field  
+                                     in ./package.json which should be a list of strings.
   -s, --skip-minify                  Skip minification when bundling. Useful for inspecting bundling issues.
   -d, --debug                        Include inline source map and inline source.
   -c, --tsconfig-file <file>         The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.
   -p, --port <port>                  The port number to start your local server. Default to 8000.
+  -hl, --headless                    Whether to run the browser in headless mode. Default is true.
   -h, --help                         display help for command
 ```
 

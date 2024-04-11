@@ -10,6 +10,7 @@
     "output": "./inside/some_bin"
   }],
   "extraAssets": [
-    "./inside/p5s_logo.png"
+    "./inside/p5s_logo.png",
+    "./favicon.ico"
   ]
 }

@@ -1,11 +1,11 @@
 import { CommonBundleOptions, bundleForNode } from "./bundler";
-import { stripFileExtension } from "@selfage/cli/io_helper";
+import { stripFileExtension } from "./file_extension_stripper";
 import { spawn } from "child_process";
 
 export async function runInNode(
   sourceFile: string,
   options?: CommonBundleOptions,
-  args = new Array<string>()
+  args = new Array<string>(),
 ): Promise<void> {
   let binFile = stripFileExtension(sourceFile) + "_bin.js";
   await bundleForNode(sourceFile, binFile, undefined, undefined, options);

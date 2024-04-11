@@ -81,10 +81,14 @@ let PORT_OPTION = [
   "-p, --port <port>",
   `The port number to start your local server. Default to 8000.`,
 ];
+let HEADLESS_BROWSER_OPTION = [
+  "-hl, --headless",
+  `Whether to run the browser in headless mode. Default is true.`,
+];
 
 function main(): void {
   let packageConfig = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "package.json")).toString()
+    fs.readFileSync(path.join(__dirname, "package.json")).toString(),
   );
   let program = new Command();
   program.version(packageConfig.version);
@@ -95,7 +99,7 @@ function main(): void {
       `Compile and bundle from a TypeScript source file that can be run in ` +
         `Node. Both file exts can be neglected and are always fixed as .ts ` +
         `and .js respectively. Npm modules are not actually bundled due to ` +
-        `many of them not compatible with bundling.`
+        `many of them not compatible with bundling.`,
     )
     .option(FROM_DIR_OPTION[0], FROM_DIR_OPTION[1])
     .option(TO_DIR_OPTION[0], TO_DIR_OPTION[1])
@@ -111,7 +115,7 @@ function main(): void {
         outputFile as string,
         options.fromDir as string,
         options.toDir as string,
-        options as CommonBundleOptions
+        options as CommonBundleOptions,
       );
     });
   program
@@ -121,7 +125,7 @@ function main(): void {
       `Compile and bundle from a TypeScript source file, and run the bundled ` +
         `JavaScript file in Node. The file ext can be neglected and is ` +
         `always fixed as .ts. "--" is needed in between <sourceFile> and ` +
-        `pass through arguments.`
+        `pass through arguments.`,
     )
     .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
     .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
@@ -133,8 +137,8 @@ function main(): void {
       runInNode(
         sourceFile as string,
         options as CommonBundleOptions,
-        passThroughArgs as Array<string>
-      )
+        passThroughArgs as Array<string>,
+      ),
     );
   program
     .command("bundleForBrowser <sourceFile> <outputFile>")
@@ -142,7 +146,7 @@ function main(): void {
     .description(
       `Compile and bundle from a TypeScript source file that can be run in ` +
         `Browser. Both file exts can be neglected and are always fixed as ` +
-        `.ts and .js respectively.`
+        `.ts and .js respectively.`,
     )
     .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
     .option(OUT_DIR_OPTION[0], OUT_DIR_OPTION[1])
@@ -158,7 +162,7 @@ function main(): void {
         outputFile as string,
         options.baseDir as string,
         options.outDir as string,
-        options as CommonBundleOptions
+        options as CommonBundleOptions,
       );
     });
   program
@@ -168,7 +172,7 @@ function main(): void {
       `Compile and bundle from a TypeScript source file, and run the bundled ` +
         `JavaScript file in Puppeteer, i.e., headless Chrome. The file ext ` +
         `can be neglected and is always fixed as .ts. "--" is needed in ` +
-        `between <sourceFile> and pass through arguments.`
+        `between <sourceFile> and pass through arguments.`,
     )
     .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
     .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
@@ -178,14 +182,16 @@ function main(): void {
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .option(PORT_OPTION[0], PORT_OPTION[1], (value) => parseInt(value, 10))
+    .option(HEADLESS_BROWSER_OPTION[0], HEADLESS_BROWSER_OPTION[1])
     .action((sourceFile, passThroughArgs, options) =>
       runInPuppeteer(
         sourceFile as string,
         options.baseDir as string,
         options.port as number,
+        options.headless as boolean,
         options as CommonBundleOptions,
-        passThroughArgs as Array<string>
-      )
+        passThroughArgs as Array<string>,
+      ),
     );
   program
     .command("bundleWebApps")
@@ -195,7 +201,7 @@ function main(): void {
         `HTML files pointing to the bundled JS files respectively, compress ` +
         `them with Gzip, collect a list of all bundled JS & HTML file paths ` +
         `and asset file paths to <bundledResources>, and finally copy those ` +
-        `files into <outDir> where your web server can be started.`
+        `files into <outDir> where your web server can be started.`,
     )
     .option(ENTRIES_CONFIG_FILE_OPTION[0], ENTRIES_CONFIG_FILE_OPTION[1])
     .option(
@@ -203,7 +209,7 @@ function main(): void {
       `An output file generated after bundling, containing a JSON array of ` +
         `files that need to be copied to <outDir> and served in your web ` +
         `server. If not provided, it will write to ` +
-        `./${DEFAULT_BUNDLED_RESOURCES_FILE}.`
+        `./${DEFAULT_BUNDLED_RESOURCES_FILE}.`,
     )
     .option(OUT_DIR_OPTION[0], OUT_DIR_OPTION[1])
     .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
@@ -217,8 +223,8 @@ function main(): void {
         options.entriesConfigFile as string,
         options.bundledResourcesFile as string,
         options.outDir as string,
-        options as CommonBundleOptions
-      )
+        options as CommonBundleOptions,
+      ),
     );
   program
     .command("bundleWebServer <serverSourceFile> <serverOutputFile>")
@@ -230,7 +236,7 @@ function main(): void {
         `them not compatible with bundling. It will also bundle web apps ` +
         `based on <entriesConfigFile> as well as <baseDir>. Finally, all ` +
         `bundled files and imported or extra assets will be copied from ` +
-        `<fromDir> to <toDir>, without any source file or intermediate file.`
+        `<fromDir> to <toDir>, without any source file or intermediate file.`,
     )
     .option(ENTRIES_CONFIG_FILE_OPTION[0], ENTRIES_CONFIG_FILE_OPTION[1])
     .option(FROM_DIR_OPTION[0], FROM_DIR_OPTION[1])
@@ -248,8 +254,8 @@ function main(): void {
         options.entriesConfigFile as string,
         options.fromDir as string,
         options.toDir as string,
-        options as CommonBundleOptions
-      )
+        options as CommonBundleOptions,
+      ),
     );
   program.parse();
 }

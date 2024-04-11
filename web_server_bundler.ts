@@ -1,11 +1,11 @@
 import path = require("path");
 import { CommonBundleOptions, bundleForNodeReturnAssetFiles } from "./bundler";
+import { stripFileExtension } from "./file_extension_stripper";
 import { copyFiles } from "./files_copier";
 import {
   DEFAULT_ENTRIES_CONFIG_FILE,
   bundleWebAppsAndReturnBundledResources,
 } from "./web_app_bundler";
-import { stripFileExtension } from "@selfage/cli/io_helper";
 
 export async function bundleWebServer(
   serverSourceFile: string,
@@ -13,27 +13,28 @@ export async function bundleWebServer(
   webAppEntriesConfigFile = DEFAULT_ENTRIES_CONFIG_FILE,
   fromDir = ".",
   toDir = fromDir,
-  options: CommonBundleOptions = {}
+  options: CommonBundleOptions = {},
 ): Promise<void> {
-  let webAppBaseDir = path.dirname(webAppEntriesConfigFile);
-  let baseDirFromServer = path.relative(
-    path.dirname(serverOutputFile),
-    webAppBaseDir
+  let webAppBaseDir = path.posix.dirname(webAppEntriesConfigFile);
+  let baseDirFromServer = path.posix.relative(
+    path.posix.dirname(serverOutputFile),
+    webAppBaseDir,
   );
   options.inlineJs = options.inlineJs ?? new Array<string>();
+  // __dirname is OS dependent. Forcing it to be POSIX style.
   options.inlineJs.push(`let path = require("path");
-globalThis.WEB_APP_BASE_DIR = path.join(__dirname, "${baseDirFromServer}");`);
+globalThis.WEB_APP_BASE_DIR = path.posix.join(...__dirname.split(path.sep), "${baseDirFromServer}");`);
 
   let [serverAssetFiles, webAppFiles] = await Promise.all([
     bundleForNodeReturnAssetFiles(serverSourceFile, serverOutputFile, options),
     bundleWebAppsAndReturnBundledResources(
       webAppEntriesConfigFile,
       webAppBaseDir,
-      options
+      options,
     ),
   ]);
 
-  if (path.normalize(fromDir) === path.normalize(toDir)) {
+  if (path.posix.normalize(fromDir) === path.posix.normalize(toDir)) {
     return;
   }
   await copyFiles(
@@ -43,6 +44,6 @@ globalThis.WEB_APP_BASE_DIR = path.join(__dirname, "${baseDirFromServer}");`);
       ...webAppFiles,
     ],
     fromDir,
-    toDir
+    toDir,
   );
 }

@@ -2,7 +2,7 @@ import fs = require("fs");
 import { bundleWebServer } from "./web_server_bundler";
 import { assertThat, containStr } from "@selfage/test_matcher";
 import { TEST_RUNNER } from "@selfage/test_runner";
-import { spawnSync } from "child_process";
+import { execSync } from "child_process";
 
 async function unlink(...files: Array<string>) {
   return Promise.all(files.map((file) => fs.promises.unlink(file)));
@@ -20,21 +20,23 @@ TEST_RUNNER.run({
           "./test_data/web_server_bundler/be/index",
           "./test_data/web_server_bundler/fe/entries.json",
           "./test_data/web_server_bundler",
-          "./test_data/web_server_bundler/bin"
+          "./test_data/web_server_bundler/bin",
         );
 
         // Verify
         assertThat(
-          spawnSync("node", ["./test_data/web_server_bundler/be/index.js"])
-            .stdout,
+          execSync(
+            "node ./test_data/web_server_bundler/be/index.js",
+          ).toString(),
           containStr("true"),
-          "log"
+          "log",
         );
         assertThat(
-          spawnSync("node", ["./test_data/web_server_bundler/bin/be/index.js"])
-            .stdout,
+          execSync(
+            "node ./test_data/web_server_bundler/bin/be/index.js",
+          ).toString(),
           containStr("true"),
-          "log"
+          "log",
         );
 
         // Verify & Cleanup
@@ -55,7 +57,7 @@ TEST_RUNNER.run({
           "./test_data/web_server_bundler/bin/fe/index.js.gz",
           "./test_data/web_server_bundler/bin/fe/index.html",
           "./test_data/web_server_bundler/bin/fe/index.html.gz",
-          "./test_data/web_server_bundler/bin/fe/inside/p5s_logo.png"
+          "./test_data/web_server_bundler/bin/fe/inside/p5s_logo.png",
         );
         await fs.promises.rmdir("./test_data/web_server_bundler/bin/be");
         await fs.promises.rmdir("./test_data/web_server_bundler/bin/fe/inside");
