@@ -188,7 +188,7 @@ function main(): void {
         sourceFile as string,
         options.baseDir as string,
         options.port as number,
-        options.noHeadless as boolean,
+        options.headless as boolean,
         options as CommonBundleOptions,
         passThroughArgs as Array<string>,
       ),
