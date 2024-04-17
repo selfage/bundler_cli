@@ -98,7 +98,7 @@ Options:
   -d, --debug                        Include inline source map and inline source.
   -c, --tsconfig-file <file>         The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.
   -p, --port <port>                  The port number to start your local server. Default to 8000.
-  -hl, --headless                    Whether to run the browser in headless mode. Default is true.
+  -nh, --no-headless                 Turn off running the browser in headless mode.
   -h, --help                         display help for command
 ```
 

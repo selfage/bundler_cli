@@ -81,9 +81,9 @@ let PORT_OPTION = [
   "-p, --port <port>",
   `The port number to start your local server. Default to 8000.`,
 ];
-let HEADLESS_BROWSER_OPTION = [
-  "-hl, --headless",
-  `Whether to run the browser in headless mode. Default is true.`,
+let NO_HEADLESS_BROWSER_OPTION = [
+  "-nh, --no-headless",
+  `Turn off running the browser in headless mode.`,
 ];
 
 function main(): void {
@@ -182,13 +182,13 @@ function main(): void {
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .option(PORT_OPTION[0], PORT_OPTION[1], (value) => parseInt(value, 10))
-    .option(HEADLESS_BROWSER_OPTION[0], HEADLESS_BROWSER_OPTION[1])
+    .option(NO_HEADLESS_BROWSER_OPTION[0], NO_HEADLESS_BROWSER_OPTION[1])
     .action((sourceFile, passThroughArgs, options) =>
       runInPuppeteer(
         sourceFile as string,
         options.baseDir as string,
         options.port as number,
-        options.headless as boolean,
+        options.noHeadless as boolean,
         options as CommonBundleOptions,
         passThroughArgs as Array<string>,
       ),
