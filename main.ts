@@ -1,13 +1,10 @@
 #!/usr/bin/env node
 import fs = require("fs");
 import path = require("path");
-import {
-  CommonBundleOptions,
-  bundleForBrowser,
-  bundleForNode,
-} from "./bundler";
+import { bundleForBrowser, bundleForNode } from "./bundler";
 import { runInNode } from "./runner_in_node";
 import { runInPuppeteer } from "./runner_in_puppeteer";
+import { toUnixPath, toUnixPathFromBundleOptions } from "./to_unix_path";
 import {
   DEFAULT_BUNDLED_RESOURCES_FILE,
   DEFAULT_ENTRIES_CONFIG_FILE,
@@ -111,11 +108,11 @@ function main(): void {
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .action(async (sourceFile, outputFile, options) => {
       await bundleForNode(
-        sourceFile as string,
-        outputFile as string,
-        options.fromDir as string,
-        options.toDir as string,
-        options as CommonBundleOptions,
+        toUnixPath(sourceFile),
+        toUnixPath(outputFile),
+        toUnixPath(options.fromDir),
+        toUnixPath(options.toDir),
+        toUnixPathFromBundleOptions(options),
       );
     });
   program
@@ -135,8 +132,8 @@ function main(): void {
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .action((sourceFile, passThroughArgs, options) =>
       runInNode(
-        sourceFile as string,
-        options as CommonBundleOptions,
+        toUnixPath(sourceFile),
+        toUnixPathFromBundleOptions(options),
         passThroughArgs as Array<string>,
       ),
     );
@@ -158,11 +155,11 @@ function main(): void {
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .action(async (sourceFile, outputFile, options) => {
       await bundleForBrowser(
-        sourceFile as string,
-        outputFile as string,
-        options.baseDir as string,
-        options.outDir as string,
-        options as CommonBundleOptions,
+        toUnixPath(sourceFile),
+        toUnixPath(outputFile),
+        toUnixPath(options.baseDir),
+        toUnixPath(options.outDir),
+        toUnixPathFromBundleOptions(options),
       );
     });
   program
@@ -185,11 +182,11 @@ function main(): void {
     .option(NO_HEADLESS_BROWSER_OPTION[0], NO_HEADLESS_BROWSER_OPTION[1])
     .action((sourceFile, passThroughArgs, options) =>
       runInPuppeteer(
-        sourceFile as string,
-        options.baseDir as string,
+        toUnixPath(sourceFile),
+        toUnixPath(options.baseDir),
         options.port as number,
         options.headless as boolean,
-        options as CommonBundleOptions,
+        toUnixPathFromBundleOptions(options),
         passThroughArgs as Array<string>,
       ),
     );
@@ -220,10 +217,10 @@ function main(): void {
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .action((options) =>
       bundleWebApps(
-        options.entriesConfigFile as string,
-        options.bundledResourcesFile as string,
-        options.outDir as string,
-        options as CommonBundleOptions,
+        toUnixPath(options.entriesConfigFile),
+        toUnixPath(options.bundledResourcesFile),
+        toUnixPath(options.outDir),
+        toUnixPathFromBundleOptions(options),
       ),
     );
   program
@@ -249,12 +246,12 @@ function main(): void {
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .action((serverSourceFile, serverOutputFile, options) =>
       bundleWebServer(
-        serverSourceFile as string,
-        serverOutputFile as string,
-        options.entriesConfigFile as string,
-        options.fromDir as string,
-        options.toDir as string,
-        options as CommonBundleOptions,
+        toUnixPath(serverSourceFile),
+        toUnixPath(serverOutputFile),
+        toUnixPath(options.entriesConfigFile),
+        toUnixPath(options.fromDir),
+        toUnixPath(options.toDir),
+        toUnixPathFromBundleOptions(options),
       ),
     );
   program.parse();
