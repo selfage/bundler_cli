@@ -18,16 +18,15 @@ You can bundle for running in either Node or browser environment.
 $ bundage bfn -h
 Usage: bundage bundleForNode|bfn [options] <sourceFile> <outputFile>
 
-Compile and bundle from a TypeScript source file that can be run in Node. Both file exts can be neglected and are always fixed as .ts and .js respectively. Npm modules are not actually bundled due to many of them not compatible with bundling.
+Compile and bundle from a TypeScript source file that can be run in Node. Both file exts can be neglected and are always fixed as .ts and .js respectively. Npm modules are not actually bundled due to many of them not compatible  
+with bundling.
 
 Options:
   -f, --from-dir <fromDir>           The directoy to copy from. If not provided, it will be the current working directory.
   -t, --to-dir <toDir>               The directoy to copy to. If not provided, or when <toDir> equals <fromDir>, no copies happen.
   -e, --extra-files <extraFiles...>  Extra TypeScript files to be bundled together with and before the source file.
   -i, --inline-js <inlineJs...>      Inline JavaScript code to be bundled together with and before all files.
-  -a, --asset-exts <assetExts...>    A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath =
-                                     require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not
-                                     provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
+  -a, --asset-exts <assetExts...>    A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
   -s, --skip-minify                  Skip minification when bundling. Useful for inspecting bundling issues.
   -d, --debug                        Include inline source map and inline source.
   -c, --tsconfig-file <file>         The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.
@@ -41,15 +40,11 @@ Usage: bundage bundleForBrowser|bfb [options] <sourceFile> <outputFile>
 Compile and bundle from a TypeScript source file that can be run in Browser. Both file exts can be neglected and are always fixed as .ts and .js respectively.
 
 Options:
-  -b, --base-dir <baseDir>           The base directory that all imported assets should be relative to, such that a web server can serve files at
-                                     this directory. If not provided, it will be the current working directory.
-  -o, --out-dir <outDir>             The output directory to where files will be copied. If not provided, or when <outDir> equals <baseDir>, no
-                                     copies happen.
+  -b, --base-dir <baseDir>           The base directory that all imported assets should be relative to, such that a web server can serve files at this directory. If not provided, it will be the current working directory.
+  -o, --out-dir <outDir>             The output directory to where files will be copied. If not provided, or when <outDir> equals <baseDir>, no copies happen.
   -e, --extra-files <extraFiles...>  Extra TypeScript files to be bundled together with and before the source file.
   -i, --inline-js <inlineJs...>      Inline JavaScript code to be bundled together with and before all files.
-  -a, --asset-exts <assetExts...>    A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath =
-                                     require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not
-                                     provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
+  -a, --asset-exts <assetExts...>    A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
   -s, --skip-minify                  Skip minification when bundling. Useful for inspecting bundling issues.
   -d, --debug                        Include inline source map and inline source.
   -c, --tsconfig-file <file>         The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.
@@ -62,16 +57,14 @@ You can bundle and then run the bundled JS file in Node in one command.
 
 ```
 $ bundage nrun -h
-Usage: bundage runInNode|nrun [options] <sourceFile>
+Usage: bundage runInNode|nrun [options] <sourceFile> [pass-through-args...]
 
-Compile and bundle from a TypeScript source file, and run the bundled JavaScript file in Node. The file ext can be neglected and is always fixed as .ts. Pass through arguments to the exectuable file after --.
+Compile and bundle from a TypeScript source file, and run the bundled JavaScript file in Node. The file ext can be neglected and is always fixed as .ts. "--" is needed in between <sourceFile> and pass through arguments.
 
 Options:
   -e, --extra-files <extraFiles...>  Extra TypeScript files to be bundled together with and before the source file.
   -i, --inline-js <inlineJs...>      Inline JavaScript code to be bundled together with and before all files.
-  -a, --asset-exts <assetExts...>    A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath =
-                                     require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not
-                                     provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
+  -a, --asset-exts <assetExts...>    A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
   -s, --skip-minify                  Skip minification when bundling. Useful for inspecting bundling issues.
   -d, --debug                        Include inline source map and inline source.
   -c, --tsconfig-file <file>         The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.
@@ -84,16 +77,16 @@ Based on [@selfage/puppeteer_test_executor](https://www.npmjs.com/package/@selfa
 
 ```
 $ bundage prun -h
-Usage: main runInPuppeteer|prun [options] <sourceFile> [pass-through-args...]
+Usage: bundage runInPuppeteer|prun [options] <sourceFile> [pass-through-args...]
 
-Compile and bundle from a TypeScript source file, and run the bundled JavaScript file in Puppeteer, i.e., headless Chrome. The file ext can be neglected and is always fixed as .ts. "--" is needed in between <sourceFile> and pass through arguments.
+Compile and bundle from a TypeScript source file, and run the bundled JavaScript file in Puppeteer, i.e., headless Chrome. The file ext can be neglected and is always fixed as .ts. "--" is needed in between <sourceFile> and pass 
+through arguments.
 
 Options:
   -b, --base-dir <baseDir>           The base directory that all imported assets should be relative to, such that a web server can serve files at this directory. If not provided, it will be the current working directory.
   -e, --extra-files <extraFiles...>  Extra TypeScript files to be bundled together with and before the source file.
   -i, --inline-js <inlineJs...>      Inline JavaScript code to be bundled together with and before all files.
-  -a, --asset-exts <assetExts...>    A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field  
-                                     in ./package.json which should be a list of strings.
+  -a, --asset-exts <assetExts...>    A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
   -s, --skip-minify                  Skip minification when bundling. Useful for inspecting bundling issues.
   -d, --debug                        Include inline source map and inline source.
   -c, --tsconfig-file <file>         The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.
@@ -112,20 +105,16 @@ After bundling, e.g. you can start [http-server](https://www.npmjs.com/package/h
 $ bundage bwa -h
 Usage: bundage bundleWebApps|bwa [options]
 
-Bundle all TypeScript source files based on <entriesConfig>, generate HTML files pointing to the bundled JS files respectively, compress them with Gzip, collect a list of all bundled JS & HTML file paths and asset file paths to <bundledResources>, and finally copy those files into <outDir> where your web server can be started.
+Bundle all TypeScript source files based on <entriesConfig>, generate HTML files pointing to the bundled JS files respectively, compress them with Gzip, collect a list of all bundled JS & HTML file paths and asset file paths to  
+<bundledResources>, and finally copy those files into <outDir> where your web server can be started.
 
 Options:
-  -ec, --entries-config-file <entriesConfigFile>        A config file to specify a list of entry files, each of which should be a single page application. See
-                                                        https://www.npmjs.com/package/@selfage/bundler_cli for its schema. Its directory is the base that all imported assets should be relative to,
-                                                        and a web server can serve files at this directory. If not provided, it will look for ./web_app_entries.json.
-  -br, --bundled-resources-file <bundledResourcesFile>  An output file generated after bundling, containing a JSON array of files that need to be copied to <outDir> and served in your web server.
-                                                        If not provided, it will write to ./web_app_resources.json.
+  -ec, --entries-config-file <entriesConfigFile>        A config file to specify a list of entry files, each of which should be a single page application. Loop for "WebAppEntries" in https://github.com/selfage/bundler_cli/blob/main/web_app_entries_def.ts for its schema. Its directory is the base that all imported assets should be relative to, and a web server can serve files at this directory. If not provided, it will look for ./web_app_entries.json.
+  -br, --bundled-resources-file <bundledResourcesFile>  An output file generated after bundling, containing a JSON array of files that need to be copied to <outDir> and served in your web server. If not provided, it will write to ./web_app_resources.json.
   -o, --out-dir <outDir>                                The output directory to where files will be copied. If not provided, or when <outDir> equals <baseDir>, no copies happen.
   -e, --extra-files <extraFiles...>                     Extra TypeScript files to be bundled together with and before the source file.
   -i, --inline-js <inlineJs...>                         Inline JavaScript code to be bundled together with and before all files.
-  -a, --asset-exts <assetExts...>                       A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which
-                                                        enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field in ./package.json which
-                                                        should be a list of strings.
+  -a, --asset-exts <assetExts...>                       A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
   -s, --skip-minify                                     Skip minification when bundling. Useful for inspecting bundling issues.
   -d, --debug                                           Include inline source map and inline source.
   -c, --tsconfig-file <file>                            The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.
@@ -140,21 +129,19 @@ The global variable is only made available after calling `$ bundage bws` with it
 
 ```
 $ bundage bws -h
-Usage: bundage bundleWebServer|bws [options] <serverSourceFile> <serverOutputFile>
+UUsage: bundage bundleWebServer|bws [options] <serverSourceFile> <serverOutputFile>
 
-Bundle a TypeScript source file as the server's main file and output. Both file exts can be neglected and are always fixed as .ts and .js respectively. Npm modules are not actually bundled due to many of them not compatible with bundling. It will also bundle web apps based on <entriesConfigFile> as well as <baseDir>. Finally, all bundled files and imported or extra assets will be copied from <fromDir> to <toDir>, without any source file or intermediate file.
+Bundle a TypeScript source file as the server's main file and output. Both file exts can be neglected and are always fixed as .ts and .js respectively. Npm modules are not actually bundled due to many of them not compatible with 
+bundling. It will also bundle web apps based on <entriesConfigFile> as well as <baseDir>. Finally, all bundled files and imported or extra assets will be copied from <fromDir> to <toDir>, without any source file or intermediate  
+file.
 
 Options:
-  -ec, --entries-config-file <entriesConfigFile>  A config file to specify a list of entry files, each of which should be a single page application. See
-                                                  https://www.npmjs.com/package/@selfage/bundler_cli for its schema. Its directory is the base that all imported assets should be relative to, and a
-                                                  web server can serve files at this directory. If not provided, it will look for ./web_app_entries.json.
+  -ec, --entries-config-file <entriesConfigFile>  A config file to specify a list of entry files, each of which should be a single page application. Loop for "WebAppEntries" in https://github.com/selfage/bundler_cli/blob/main/web_app_entries_def.ts for its schema. Its directory is the base that all imported assets should be relative to, and a web server can serve files at this directory. If not provided, it will look for ./web_app_entries.json.
   -f, --from-dir <fromDir>                        The directoy to copy from. If not provided, it will be the current working directory.
   -t, --to-dir <toDir>                            The directoy to copy to. If not provided, or when <toDir> equals <fromDir>, no copies happen.
   -e, --extra-files <extraFiles...>               Extra TypeScript files to be bundled together with and before the source file.
   -i, --inline-js <inlineJs...>                   Inline JavaScript code to be bundled together with and before all files.
-  -a, --asset-exts <assetExts...>                 A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which enables
-                                                  `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field in ./package.json which should be a
-                                                  list of strings.
+  -a, --asset-exts <assetExts...>                 A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
   -s, --skip-minify                               Skip minification when bundling. Useful for inspecting bundling issues.
   -d, --debug                                     Include inline source map and inline source.
   -c, --tsconfig-file <file>                      The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.

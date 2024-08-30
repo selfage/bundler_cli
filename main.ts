@@ -47,11 +47,11 @@ let TSCONFIG_FILE_OPTION = [
 let ENTRIES_CONFIG_FILE_OPTION = [
   "-ec, --entries-config-file <entriesConfigFile>",
   `A config file to specify a list of entry files, each of which should ` +
-    `be a single page application. See ` +
-    `https://www.npmjs.com/package/@selfage/bundler_cli for its schema. Its ` +
-    `directory is the base that all imported assets should be relative to, ` +
-    `and a web server can serve files at this directory. If not provided, it ` +
-    `will look for ./${DEFAULT_ENTRIES_CONFIG_FILE}.`,
+    `be a single page application. Loop for "WebAppEntries" in ` +
+    `https://github.com/selfage/bundler_cli/blob/main/web_app_entries_def.ts ` +
+    `for its schema. Its directory is the base that all imported assets ` +
+    `should be relative to, and a web server can serve files at this ` +
+    `directory. If not provided, it will look for ./${DEFAULT_ENTRIES_CONFIG_FILE}.`,
 ];
 let FROM_DIR_OPTION = [
   "-f, --from-dir <fromDir>",

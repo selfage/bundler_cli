@@ -4,10 +4,12 @@
     "fields": [{
       "name": "source",
       "type": "string",
+      "index": 1,
       "comment": "The source TypeScript file, relative to the directory of the config file. File ext can be neglected."
     }, {
       "name": "output",
       "type": "string",
+      "index": 2,
       "comment": "The output file name after bundling, relative to the directory of the config file. File ext can be neglectd. A JS file and an HTML file are expected to be generated."
     }]
   }
@@ -17,11 +19,13 @@
     "fields": [{
       "name": "entries",
       "type": "WebAppEntry",
+      "index": 1,
       "isArray": true
     }, {
       "name": "extraAssets",
       "type": "string",
       "isArray": true,
+      "index": 2,
       "comment": "Extra asset files that need to be copied to and served from a new directory, such as favicon.ico. Asset files that are imported by entry files don't need to be included here."
     }]
   }

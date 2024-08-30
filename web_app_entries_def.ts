@@ -13,10 +13,12 @@ export let WEB_APP_ENTRY: MessageDescriptor<WebAppEntry> = {
     {
       name: 'source',
       primitiveType: PrimitiveType.STRING,
+      index: 1,
     },
     {
       name: 'output',
       primitiveType: PrimitiveType.STRING,
+      index: 2,
     },
   ]
 };
@@ -33,12 +35,14 @@ export let WEB_APP_ENTRIES: MessageDescriptor<WebAppEntries> = {
     {
       name: 'entries',
       messageType: WEB_APP_ENTRY,
-      isArray: true
+      isArray: true,
+      index: 1,
     },
     {
       name: 'extraAssets',
       primitiveType: PrimitiveType.STRING,
-      isArray: true
+      isArray: true,
+      index: 2,
     },
   ]
 };
