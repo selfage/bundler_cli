@@ -1,7 +1,0 @@
-{
-  "entries": [{
-    "source": "./main",
-    "output": "./index"
-  }],
-  "extraAssets": ["./inside/p5s_logo.png"]
-}

@@ -71,8 +71,8 @@ TEST_RUNNER.run({
       execute: async () => {
         // Execute
         await bundleWebApps(
-          "./test_data/web_app_bundler/entries.json",
-          "./test_data/web_app_bundler/bundled_resources.json",
+          "./test_data/web_app_bundler/entries.yaml",
+          "./test_data/web_app_bundler/bundled_resources.yaml",
           "./test_data/web_app_bundler/out_dir"
         );
 
@@ -120,7 +120,7 @@ TEST_RUNNER.run({
             "./test_data/web_app_bundler/inside/some.js",
             "./test_data/web_app_bundler/inside/some.d.ts",
             "./test_data/web_app_bundler/inside/some.tsbuildinfo",
-            "./test_data/web_app_bundler/bundled_resources.json",
+            "./test_data/web_app_bundler/bundled_resources.yaml",
             "./test_data/web_app_bundler/out_dir/index.html",
             "./test_data/web_app_bundler/out_dir/index.html.gz",
             "./test_data/web_app_bundler/out_dir/index.js",

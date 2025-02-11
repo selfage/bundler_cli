@@ -2,6 +2,7 @@ import fs = require("fs");
 import path = require("path");
 import stream = require("stream");
 import util = require("util");
+import yaml = require("yaml");
 import zlib = require("zlib");
 import {
   CommonBundleOptions,
@@ -13,8 +14,8 @@ import { WEB_APP_ENTRIES } from "./web_app_entries_def";
 import { parseMessage } from "@selfage/message/parser";
 let pipeline = util.promisify(stream.pipeline);
 
-export let DEFAULT_ENTRIES_CONFIG_FILE = "web_app_entries.json";
-export let DEFAULT_BUNDLED_RESOURCES_FILE = "web_app_resources.json";
+export let DEFAULT_ENTRIES_CONFIG_FILE = "web_app_entries.yaml";
+export let DEFAULT_BUNDLED_RESOURCES_FILE = "web_app_resources.yaml";
 
 export async function bundleWebApps(
   entriesConfigFile = DEFAULT_ENTRIES_CONFIG_FILE,
@@ -33,7 +34,7 @@ export async function bundleWebApps(
   );
   await fs.promises.writeFile(
     bundledResourcesFile,
-    JSON.stringify(allRelativeFiles),
+    yaml.stringify(allRelativeFiles),
   );
 
   if (
@@ -51,7 +52,7 @@ export async function bundleWebAppsAndReturnBundledResources(
   options?: CommonBundleOptions,
 ): Promise<Array<string>> {
   let webAppEntries = parseMessage(
-    JSON.parse((await fs.promises.readFile(entriesConfigFile)).toString()),
+    yaml.parse((await fs.promises.readFile(entriesConfigFile)).toString()),
     WEB_APP_ENTRIES,
   );
   let configDir = path.posix.dirname(entriesConfigFile);
