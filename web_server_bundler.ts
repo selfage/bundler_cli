@@ -1,7 +1,7 @@
 import path = require("path");
 import { CommonBundleOptions, bundleForNodeReturnAssetFiles } from "./bundler";
 import { stripFileExtension } from "./file_extension_stripper";
-import { copyFiles } from "./files_copier";
+import { copyFilesToDir } from "./files_copier";
 import {
   DEFAULT_ENTRIES_CONFIG_FILE,
   bundleWebAppsAndReturnBundledResources,
@@ -36,7 +36,7 @@ globalThis.WEB_APP_BASE_DIR = path.join(__dirname, "${baseDirFromServer}");`);
   if (path.posix.normalize(fromDir) === path.posix.normalize(toDir)) {
     return;
   }
-  await copyFiles(
+  await copyFilesToDir(
     [
       stripFileExtension(serverOutputFile) + ".js",
       ...serverAssetFiles,

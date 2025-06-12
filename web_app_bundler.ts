@@ -9,7 +9,7 @@ import {
   bundleForBrowserReturnAssetFiles,
 } from "./bundler";
 import { stripFileExtension } from "./file_extension_stripper";
-import { copyFiles } from "./files_copier";
+import { copyFilesToDir } from "./files_copier";
 import { WEB_APP_ENTRIES } from "./web_app_entries_def";
 import { parseMessage } from "@selfage/message/parser";
 let pipeline = util.promisify(stream.pipeline);
@@ -43,7 +43,7 @@ export async function bundleWebApps(
   ) {
     return;
   }
-  await copyFiles(allFiles, baseDir, outDir);
+  await copyFilesToDir(allFiles, baseDir, outDir);
 }
 
 export async function bundleWebAppsAndReturnBundledResources(
@@ -55,32 +55,36 @@ export async function bundleWebAppsAndReturnBundledResources(
     yaml.parse((await fs.promises.readFile(entriesConfigFile)).toString()),
     WEB_APP_ENTRIES,
   );
-  let configDir = path.posix.dirname(entriesConfigFile);
 
-  let promises = new Array<Promise<Array<string>>>();
+  let allFiles = new Array<string>();
+  let promises = new Array<Promise<void>>();
   for (let entry of webAppEntries.entries) {
     promises.push(
       bundleAndGzip(
-        path.posix.join(configDir, entry.source),
-        path.posix.join(configDir, entry.output),
+        path.posix.join(baseDir, entry.source),
+        path.posix.join(baseDir, entry.output),
         baseDir,
         options,
+        allFiles,
       ),
-      writeHtmlFileAndGZip(path.posix.join(configDir, entry.output), baseDir),
+      writeHtmlFileAndGZip(
+        path.posix.join(baseDir, entry.output),
+        baseDir,
+        allFiles,
+      ),
     );
   }
-
-  let allFiles = await Promise.all(promises);
-  let flattenedFiles = new Array<string>();
-  for (let files of allFiles) {
-    flattenedFiles.push(...files);
+  for (let entry of webAppEntries.extraAssets) {
+    promises.push(
+      copyAsset(
+        path.posix.join(baseDir, entry.from),
+        path.posix.join(baseDir, entry.to),
+        allFiles,
+      ),
+    );
   }
-  if (webAppEntries.extraAssets) {
-    for (let extraAsset of webAppEntries.extraAssets) {
-      flattenedFiles.push(path.posix.join(configDir, extraAsset));
-    }
-  }
-  return flattenedFiles;
+  await Promise.all(promises);
+  return allFiles;
 }
 
 async function bundleAndGzip(
@@ -88,7 +92,8 @@ async function bundleAndGzip(
   outputFile: string,
   baseDir: string,
   options: CommonBundleOptions,
-): Promise<Array<string>> {
+  filesCollector: Array<string>,
+): Promise<void> {
   let assetFiles = await bundleForBrowserReturnAssetFiles(
     sourceFile,
     outputFile,
@@ -97,13 +102,14 @@ async function bundleAndGzip(
   );
   let jsFile = stripFileExtension(outputFile) + ".js";
   let gzFile = await gzipFile(jsFile);
-  return [...assetFiles, jsFile, gzFile];
+  filesCollector.push(...assetFiles, jsFile, gzFile);
 }
 
 async function writeHtmlFileAndGZip(
   binFile: string,
   baseDir: string,
-): Promise<Array<string>> {
+  filesCollector: Array<string>,
+): Promise<void> {
   let binModulePath = stripFileExtension(binFile);
   let htmlFile = binModulePath + ".html";
   let binJsPath = path.posix.relative(baseDir, binModulePath + ".js");
@@ -118,7 +124,7 @@ async function writeHtmlFileAndGZip(
 </html>`,
   );
   let gzFile = await gzipFile(htmlFile);
-  return [htmlFile, gzFile];
+  filesCollector.push(htmlFile, gzFile);
 }
 
 async function gzipFile(file: string): Promise<string> {
@@ -128,4 +134,16 @@ async function gzipFile(file: string): Promise<string> {
     fs.createWriteStream(file + ".gz"),
   );
   return file + ".gz";
+}
+
+async function copyAsset(
+  fromFile: string,
+  toFile: string,
+  filesCollector: Array<string>,
+): Promise<void> {
+  if (path.posix.normalize(fromFile) !== path.posix.normalize(toFile)) {
+    await fs.promises.mkdir(path.posix.dirname(toFile), { recursive: true });
+    await fs.promises.copyFile(fromFile, toFile);
+  }
+  filesCollector.push(toFile);
 }

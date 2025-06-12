@@ -10,6 +10,17 @@
       type: string
       index: 2
 - kind: Message
+  name: ExtraAsset
+  fields:
+    # The file path to copy from, relative to the directory of the config file.
+    - name: from
+      type: string
+      index: 1
+    # The file path to copy to, relative to the directory of the config file.
+    - name: to
+      type: string
+      index: 2
+- kind: Message
   name: WebAppEntries
   fields:
     - name: entries
@@ -18,6 +29,6 @@
       isArray: true
     # Extra asset files that need to be copied to and served from a new directory, such as favicon.ico. Asset files that are imported by entry files don't need to be included here.
     - name: extraAssets
-      type: string
+      type: ExtraAsset
       isArray: true
       index: 2

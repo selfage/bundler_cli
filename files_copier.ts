@@ -1,15 +1,15 @@
 import fs = require("fs");
 import path = require("path");
 
-export async function copyFiles(
+export async function copyFilesToDir(
   files: Array<string>,
   fromDir: string,
   toDir: string
 ): Promise<void> {
-  await Promise.all(files.map((file) => copyFile(file, fromDir, toDir)));
+  await Promise.all(files.map((file) => copyFileToDir(file, fromDir, toDir)));
 }
 
-async function copyFile(
+async function copyFileToDir(
   file: string,
   fromDir: string,
   toDir: string

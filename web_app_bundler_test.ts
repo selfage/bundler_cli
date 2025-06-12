@@ -51,7 +51,9 @@ async function verifyAllResourcesLoaded(
   assertThat(await someBinPageLogPromise, eq("some:foo"), "some_bin.html log");
 
   await page.goto(`${BASE_URL}/inside/test_image.png`);
-  await page.goto(`${BASE_URL}/inside/p5s_logo.png`);
+  await page.goto(`${BASE_URL}/p5s_logo.png`);
+  await page.goto(`${BASE_URL}/inside/favicon.ico`);
+  await page.goto(`${BASE_URL}/favicon.ico`);
 
   await browser.close();
   await new Promise<void>((resolve) => {
@@ -113,6 +115,7 @@ TEST_RUNNER.run({
             "./test_data/web_app_bundler/not_found.tsbuildinfo",
             "./test_data/web_app_bundler/base.js",
             "./test_data/web_app_bundler/base.d.ts",
+            "./test_data/web_app_bundler/p5s_logo.png",
             "./test_data/web_app_bundler/inside/some_bin.html",
             "./test_data/web_app_bundler/inside/some_bin.html.gz",
             "./test_data/web_app_bundler/inside/some_bin.js",
@@ -120,26 +123,13 @@ TEST_RUNNER.run({
             "./test_data/web_app_bundler/inside/some.js",
             "./test_data/web_app_bundler/inside/some.d.ts",
             "./test_data/web_app_bundler/inside/some.tsbuildinfo",
+            "./test_data/web_app_bundler/inside/favicon.ico",
             "./test_data/web_app_bundler/bundled_resources.yaml",
-            "./test_data/web_app_bundler/out_dir/index.html",
-            "./test_data/web_app_bundler/out_dir/index.html.gz",
-            "./test_data/web_app_bundler/out_dir/index.js",
-            "./test_data/web_app_bundler/out_dir/index.js.gz",
-            "./test_data/web_app_bundler/out_dir/404.html",
-            "./test_data/web_app_bundler/out_dir/404.html.gz",
-            "./test_data/web_app_bundler/out_dir/404.js",
-            "./test_data/web_app_bundler/out_dir/404.js.gz",
-            "./test_data/web_app_bundler/out_dir/favicon.ico",
-            "./test_data/web_app_bundler/out_dir/inside/some_bin.html",
-            "./test_data/web_app_bundler/out_dir/inside/some_bin.html.gz",
-            "./test_data/web_app_bundler/out_dir/inside/some_bin.js",
-            "./test_data/web_app_bundler/out_dir/inside/some_bin.js.gz",
-            "./test_data/web_app_bundler/out_dir/inside/p5s_logo.png",
-            "./test_data/web_app_bundler/out_dir/inside/test_image.png"
           ),
         ]);
-        await fs.promises.rmdir("./test_data/web_app_bundler/out_dir/inside");
-        await fs.promises.rmdir("./test_data/web_app_bundler/out_dir");
+        await fs.promises.rmdir("./test_data/web_app_bundler/out_dir", {
+          recursive: true,
+        });
       },
     },
   ],

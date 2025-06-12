@@ -4,7 +4,7 @@ import path = require("path");
 import stream = require("stream");
 import UglifyJS = require("uglify-js");
 import { stripFileExtension } from "./file_extension_stripper";
-import { copyFiles } from "./files_copier";
+import { copyFilesToDir } from "./files_copier";
 import { getStream } from "./get_stream";
 import { compile } from "@selfage/cli/build/compiler";
 
@@ -44,7 +44,7 @@ export async function bundleForNode(
   if (path.posix.normalize(fromDir) === path.posix.normalize(toDir)) {
     return;
   }
-  await copyFiles(
+  await copyFilesToDir(
     [stripFileExtension(outputFile) + ".js", ...assetFiles],
     fromDir,
     toDir,
@@ -77,7 +77,7 @@ export async function bundleForBrowser(
   if (path.posix.normalize(baseDir) === path.posix.normalize(outDir)) {
     return;
   }
-  await copyFiles(
+  await copyFilesToDir(
     [stripFileExtension(outputFile) + ".js", ...assetFiles],
     baseDir,
     outDir,
@@ -183,6 +183,9 @@ export async function bundle(
     outputCode = minifiedRes.code;
   }
 
+  await fs.promises.mkdir(path.posix.dirname(outputFile), {
+    recursive: true,
+  });
   await fs.promises.writeFile(
     stripFileExtension(outputFile) + ".js",
     outputCode,
