@@ -75,6 +75,7 @@ TEST_RUNNER.run({
         await bundleWebApps(
           "./test_data/web_app_bundler/entries.yaml",
           "./test_data/web_app_bundler/bundled_resources.yaml",
+          "./test_data/web_app_bundler",
           "./test_data/web_app_bundler/out_dir"
         );
 
@@ -115,7 +116,6 @@ TEST_RUNNER.run({
             "./test_data/web_app_bundler/not_found.tsbuildinfo",
             "./test_data/web_app_bundler/base.js",
             "./test_data/web_app_bundler/base.d.ts",
-            "./test_data/web_app_bundler/p5s_logo.png",
             "./test_data/web_app_bundler/inside/some_bin.html",
             "./test_data/web_app_bundler/inside/some_bin.html.gz",
             "./test_data/web_app_bundler/inside/some_bin.js",
@@ -123,7 +123,6 @@ TEST_RUNNER.run({
             "./test_data/web_app_bundler/inside/some.js",
             "./test_data/web_app_bundler/inside/some.d.ts",
             "./test_data/web_app_bundler/inside/some.tsbuildinfo",
-            "./test_data/web_app_bundler/inside/favicon.ico",
             "./test_data/web_app_bundler/bundled_resources.yaml",
           ),
         ]);

@@ -6,9 +6,6 @@ entries:
   - source: ./inside/some
     output: ./inside/some_bin
 extraAssets:
-  - from: ./inside/p5s_logo.png
-    to: ./p5s_logo.png
-  - from: ./favicon.ico
-    to: ./inside/favicon.ico
-  - from: ./favicon.ico
-    to: ./favicon.ico
+  - ./inside/p5s_logo.png
+  - ./favicon.ico
+  

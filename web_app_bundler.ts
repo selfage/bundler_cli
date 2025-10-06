@@ -20,10 +20,10 @@ export let DEFAULT_BUNDLED_RESOURCES_FILE = "web_app_resources.yaml";
 export async function bundleWebApps(
   entriesConfigFile = DEFAULT_ENTRIES_CONFIG_FILE,
   bundledResourcesFile = DEFAULT_BUNDLED_RESOURCES_FILE,
-  outDir?: string,
+  baseDir = ".",
+  outDir = baseDir,
   options?: CommonBundleOptions,
 ): Promise<void> {
-  let baseDir = path.posix.dirname(entriesConfigFile);
   let allFiles = await bundleWebAppsAndReturnBundledResources(
     entriesConfigFile,
     baseDir,
@@ -74,18 +74,12 @@ export async function bundleWebAppsAndReturnBundledResources(
       ),
     );
   }
+  await Promise.all(promises);
   if (webAppEntries.extraAssets) {
-    for (let entry of webAppEntries.extraAssets) {
-      promises.push(
-        copyAsset(
-          path.posix.join(baseDir, entry.from),
-          path.posix.join(baseDir, entry.to),
-          allFiles,
-        ),
-      );
+    for (let extraAsset of webAppEntries.extraAssets) {
+      allFiles.push(path.posix.join(baseDir, extraAsset));
     }
   }
-  await Promise.all(promises);
   return allFiles;
 }
 
@@ -136,16 +130,4 @@ async function gzipFile(file: string): Promise<string> {
     fs.createWriteStream(file + ".gz"),
   );
   return file + ".gz";
-}
-
-async function copyAsset(
-  fromFile: string,
-  toFile: string,
-  filesCollector: Array<string>,
-): Promise<void> {
-  if (path.posix.normalize(fromFile) !== path.posix.normalize(toFile)) {
-    await fs.promises.mkdir(path.posix.dirname(toFile), { recursive: true });
-    await fs.promises.copyFile(fromFile, toFile);
-  }
-  filesCollector.push(toFile);
 }

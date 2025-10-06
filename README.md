@@ -105,16 +105,24 @@ After bundling, e.g. you can start [http-server](https://www.npmjs.com/package/h
 $ bundage bwa -h
 Usage: bundage bundleWebApps|bwa [options]
 
-Bundle all TypeScript source files based on <entriesConfig>, generate HTML files pointing to the bundled JS files respectively, compress them with Gzip, collect a list of all bundled JS & HTML file paths and asset file paths to  
-<bundledResources>, and finally copy those files into <outDir> where your web server can be started.
+Bundle all TypeScript source files based on <entriesConfig>, generate HTML files pointing to the bundled JS files respectively, compress them with Gzip, collect a list of all bundled
+JS & HTML file paths and asset file paths to <bundledResources>, and finally copy those files into <outDir> where your web server can be started.
 
 Options:
-  -ec, --entries-config-file <entriesConfigFile>        A config file to specify a list of entry files, each of which should be a single page application. Loop for "WebAppEntries" in https://github.com/selfage/bundler_cli/blob/main/web_app_entries_def.ts for its schema. Its directory is the base that all imported assets should be relative to, and a web server can serve files at this directory. If not provided, it will look for ./web_app_entries.json.
-  -br, --bundled-resources-file <bundledResourcesFile>  An output file generated after bundling, containing a JSON array of files that need to be copied to <outDir> and served in your web server. If not provided, it will write to ./web_app_resources.json.
+  -ec, --entries-config-file <entriesConfigFile>        A config file to specify a list of entry files, each of which should be a single page application. Loop for "WebAppEntries" in
+                                                        https://github.com/selfage/bundler_cli/blob/main/web_app_entries_def.ts for its schema. Its directory is the base that all
+                                                        imported assets should be relative to, and a web server can serve files at this directory. If not provided, it will look for
+                                                        ./web_app_entries.yaml.
+  -br, --bundled-resources-file <bundledResourcesFile>  An output file generated after bundling, containing a JSON array of files that need to be copied to <outDir> and served in your
+                                                        web server. If not provided, it will write to ./web_app_resources.yaml.
+  -b, --base-dir <baseDir>                              The base directory that all imported assets should be relative to, such that a web server can serve files at this directory. If
+                                                        not provided, it will be the current working directory.
   -o, --out-dir <outDir>                                The output directory to where files will be copied. If not provided, or when <outDir> equals <baseDir>, no copies happen.
   -e, --extra-files <extraFiles...>                     Extra TypeScript files to be bundled together with and before the source file.
   -i, --inline-js <inlineJs...>                         Inline JavaScript code to be bundled together with and before all files.
-  -a, --asset-exts <assetExts...>                       A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
+  -a, --asset-exts <assetExts...>                       A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath =
+                                                        require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look
+                                                        for `assetExts` field in ./package.json which should be a list of strings.
   -s, --skip-minify                                     Skip minification when bundling. Useful for inspecting bundling issues.
   -d, --debug                                           Include inline source map and inline source.
   -c, --tsconfig-file <file>                            The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.

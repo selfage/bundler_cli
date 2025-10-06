@@ -208,6 +208,7 @@ function main(): void {
         `server. If not provided, it will write to ` +
         `./${DEFAULT_BUNDLED_RESOURCES_FILE}.`,
     )
+    .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
     .option(OUT_DIR_OPTION[0], OUT_DIR_OPTION[1])
     .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
     .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
@@ -219,6 +220,7 @@ function main(): void {
       bundleWebApps(
         toUnixPath(options.entriesConfigFile),
         toUnixPath(options.bundledResourcesFile),
+        toUnixPath(options.baseDir),
         toUnixPath(options.outDir),
         toUnixPathFromBundleOptions(options),
       ),

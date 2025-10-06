@@ -18,27 +18,9 @@ export let WEB_APP_ENTRY: MessageDescriptor<WebAppEntry> = {
   }],
 };
 
-export interface ExtraAsset {
-  from?: string,
-  to?: string,
-}
-
-export let EXTRA_ASSET: MessageDescriptor<ExtraAsset> = {
-  name: 'ExtraAsset',
-  fields: [{
-    name: 'from',
-    index: 1,
-    primitiveType: PrimitiveType.STRING,
-  }, {
-    name: 'to',
-    index: 2,
-    primitiveType: PrimitiveType.STRING,
-  }],
-};
-
 export interface WebAppEntries {
   entries?: Array<WebAppEntry>,
-  extraAssets?: Array<ExtraAsset>,
+  extraAssets?: Array<string>,
 }
 
 export let WEB_APP_ENTRIES: MessageDescriptor<WebAppEntries> = {
@@ -51,7 +33,7 @@ export let WEB_APP_ENTRIES: MessageDescriptor<WebAppEntries> = {
   }, {
     name: 'extraAssets',
     index: 2,
-    messageType: EXTRA_ASSET,
+    primitiveType: PrimitiveType.STRING,
     isArray: true,
   }],
 };
