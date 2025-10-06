@@ -74,14 +74,16 @@ export async function bundleWebAppsAndReturnBundledResources(
       ),
     );
   }
-  for (let entry of webAppEntries.extraAssets) {
-    promises.push(
-      copyAsset(
-        path.posix.join(baseDir, entry.from),
-        path.posix.join(baseDir, entry.to),
-        allFiles,
-      ),
-    );
+  if (webAppEntries.extraAssets) {
+    for (let entry of webAppEntries.extraAssets) {
+      promises.push(
+        copyAsset(
+          path.posix.join(baseDir, entry.from),
+          path.posix.join(baseDir, entry.to),
+          allFiles,
+        ),
+      );
+    }
   }
   await Promise.all(promises);
   return allFiles;
