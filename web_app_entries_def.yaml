@@ -1,11 +1,11 @@
 - kind: Message
   name: WebAppEntry
   fields:
-    # The source TypeScript file, relative to the directory of the config file. File ext can be neglected.
+    # The source TypeScript file, relative to the baseDir. File ext can be neglected.
     - name: source
       type: string
       index: 1
-    # The output file name after bundling, relative to the directory of the config file. File ext can be neglectd. A JS file and an HTML file are expected to be generated.
+    # The output file name after bundling, relative to the baseDir. File ext can be neglectd. A JS file and an HTML file are expected to be generated.
     - name: output
       type: string
       index: 2
