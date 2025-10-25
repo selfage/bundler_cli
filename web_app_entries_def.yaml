@@ -10,6 +10,15 @@
       type: string
       index: 2
 - kind: Message
+  name: ExtraAsset
+  fields:
+    - name: from
+      type: string
+      index: 1
+    - name: to
+      type: string
+      index: 2
+- kind: Message
   name: WebAppEntries
   fields:
     - name: entries
@@ -17,6 +26,6 @@
       index: 1
       isArray: true
     - name: extraAssets
-      type: string
+      type: ExtraAsset
       isArray: true
       index: 2

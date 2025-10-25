@@ -74,12 +74,18 @@ export async function bundleWebAppsAndReturnBundledResources(
       ),
     );
   }
-  await Promise.all(promises);
   if (webAppEntries.extraAssets) {
-    for (let extraAsset of webAppEntries.extraAssets) {
-      allFiles.push(path.posix.join(baseDir, extraAsset));
+    for (let entry of webAppEntries.extraAssets) {
+      promises.push(
+        copyAsset(
+          path.posix.join(baseDir, entry.from),
+          path.posix.join(baseDir, entry.to),
+          allFiles,
+        ),
+      );
     }
   }
+  await Promise.all(promises);
   return allFiles;
 }
 
@@ -130,4 +136,16 @@ async function gzipFile(file: string): Promise<string> {
     fs.createWriteStream(file + ".gz"),
   );
   return file + ".gz";
+}
+
+async function copyAsset(
+  fromFile: string,
+  toFile: string,
+  filesCollector: Array<string>,
+): Promise<void> {
+  if (path.posix.normalize(fromFile) !== path.posix.normalize(toFile)) {
+    await fs.promises.mkdir(path.posix.dirname(toFile), { recursive: true });
+    await fs.promises.copyFile(fromFile, toFile);
+  }
+  filesCollector.push(toFile);
 }
