@@ -115,6 +115,7 @@ async function writeHtmlFileAndGZip(
   let binModulePath = stripFileExtension(binFile);
   let htmlFile = binModulePath + ".html";
   let binJsPath = path.posix.relative(baseDir, binModulePath + ".js");
+  await fs.promises.mkdir(path.posix.dirname(binFile), { recursive: true });
   await fs.promises.writeFile(
     htmlFile,
     `<!DOCTYPE html>
@@ -130,6 +131,7 @@ async function writeHtmlFileAndGZip(
 }
 
 async function gzipFile(file: string): Promise<string> {
+  await fs.promises.mkdir(path.posix.dirname(file), { recursive: true });
   await pipeline(
     fs.createReadStream(file),
     zlib.createGzip({ level: 9 }),

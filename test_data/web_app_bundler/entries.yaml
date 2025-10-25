@@ -4,11 +4,11 @@ entries:
   - source: ./not_found
     output: ./404
   - source: ./inside/some
-    output: ./inside/some_bin
+    output: ./new_inside/some_bin
 extraAssets:
   - from: ./inside/p5s_logo.png
     to: ./p5s_logo.png
   - from: ./favicon.ico
-    to: ./inside/favicon.ico
+    to: ./new_inside/favicon.ico
   - from: ./favicon.ico
     to: ./favicon.ico
