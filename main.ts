@@ -1,18 +1,13 @@
 #!/usr/bin/env node
+import "source-map-support/register";
 import fs = require("fs");
 import path = require("path");
-import { bundleForBrowser, bundleForNode } from "./bundler";
 import { runInNode } from "./runner_in_node";
 import { runInPuppeteer } from "./runner_in_puppeteer";
 import { toUnixPath, toUnixPathFromBundleOptions } from "./to_unix_path";
-import {
-  DEFAULT_BUNDLED_RESOURCES_FILE,
-  DEFAULT_ENTRIES_CONFIG_FILE,
-  bundleWebApps,
-} from "./web_app_bundler";
-import { bundleWebServer } from "./web_server_bundler";
+import { DEFAULT_ENTRIES_CONFIG_FILE, bundleWebApps } from "./web_app_bundler";
 import { Command } from "commander";
-import "source-map-support/register";
+import { bundleNodeServer } from "./node_server_bundler";
 
 let EXTRA_FILES_OPTION = [
   "-e, --extra-files <extraFiles...>",
@@ -90,32 +85,6 @@ function main(): void {
   let program = new Command();
   program.version(packageConfig.version);
   program
-    .command("bundleForNode <sourceFile> <outputFile>")
-    .alias("bfn")
-    .description(
-      `Compile and bundle from a TypeScript source file that can be run in ` +
-        `Node. Both file exts can be neglected and are always fixed as .ts ` +
-        `and .js respectively. Npm modules are not actually bundled due to ` +
-        `many of them not compatible with bundling.`,
-    )
-    .option(FROM_DIR_OPTION[0], FROM_DIR_OPTION[1])
-    .option(TO_DIR_OPTION[0], TO_DIR_OPTION[1])
-    .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
-    .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
-    .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
-    .option(SKIP_MINIFY_OPTION[0], SKIP_MINIFY_OPTION[1])
-    .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
-    .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
-    .action(async (sourceFile, outputFile, options) => {
-      await bundleForNode(
-        toUnixPath(sourceFile),
-        toUnixPath(outputFile),
-        toUnixPath(options.fromDir),
-        toUnixPath(options.toDir),
-        toUnixPathFromBundleOptions(options),
-      );
-    });
-  program
     .command("runInNode <sourceFile> [pass-through-args...]")
     .alias("nrun")
     .description(
@@ -137,31 +106,6 @@ function main(): void {
         passThroughArgs as Array<string>,
       ),
     );
-  program
-    .command("bundleForBrowser <sourceFile> <outputFile>")
-    .alias("bfb")
-    .description(
-      `Compile and bundle from a TypeScript source file that can be run in ` +
-        `Browser. Both file exts can be neglected and are always fixed as ` +
-        `.ts and .js respectively.`,
-    )
-    .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
-    .option(OUT_DIR_OPTION[0], OUT_DIR_OPTION[1])
-    .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
-    .option(INLINE_JS_CODE_OPTION[0], INLINE_JS_CODE_OPTION[1])
-    .option(ASSET_EXT_OPTION[0], ASSET_EXT_OPTION[1])
-    .option(SKIP_MINIFY_OPTION[0], SKIP_MINIFY_OPTION[1])
-    .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
-    .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
-    .action(async (sourceFile, outputFile, options) => {
-      await bundleForBrowser(
-        toUnixPath(sourceFile),
-        toUnixPath(outputFile),
-        toUnixPath(options.baseDir),
-        toUnixPath(options.outDir),
-        toUnixPathFromBundleOptions(options),
-      );
-    });
   program
     .command("runInPuppeteer <sourceFile> [pass-through-args...]")
     .alias("prun")
@@ -196,18 +140,10 @@ function main(): void {
     .description(
       `Bundle all TypeScript source files based on <entriesConfig>, generate ` +
         `HTML files pointing to the bundled JS files respectively, compress ` +
-        `them with Gzip, collect a list of all bundled JS & HTML file paths ` +
-        `and asset file paths to <bundledResources>, and finally copy those ` +
-        `files into <outDir> where your web server can be started.`,
+        `them with Gzip, and finally move those files into <outDir> where ` +
+        `your web server can be started.`,
     )
     .option(ENTRIES_CONFIG_FILE_OPTION[0], ENTRIES_CONFIG_FILE_OPTION[1])
-    .option(
-      "-br, --bundled-resources-file <bundledResourcesFile>",
-      `An output file generated after bundling, containing a JSON array of ` +
-        `files that need to be copied to <outDir> and served in your web ` +
-        `server. If not provided, it will write to ` +
-        `./${DEFAULT_BUNDLED_RESOURCES_FILE}.`,
-    )
     .option(BASE_DIR_OPTION[0], BASE_DIR_OPTION[1])
     .option(OUT_DIR_OPTION[0], OUT_DIR_OPTION[1])
     .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
@@ -219,25 +155,22 @@ function main(): void {
     .action((options) =>
       bundleWebApps(
         toUnixPath(options.entriesConfigFile),
-        toUnixPath(options.bundledResourcesFile),
         toUnixPath(options.baseDir),
         toUnixPath(options.outDir),
         toUnixPathFromBundleOptions(options),
       ),
     );
   program
-    .command("bundleWebServer <serverSourceFile> <serverOutputFile>")
-    .alias("bws")
+    .command("bundleNodeServer <serverSourceFile> <serverOutputFile>")
+    .alias("bns")
     .description(
       `Bundle a TypeScript source file as the server's main file and output. ` +
         `Both file exts can be neglected and are always fixed as .ts and .js ` +
         `respectively. Npm modules are not actually bundled due to many of ` +
-        `them not compatible with bundling. It will also bundle web apps ` +
-        `based on <entriesConfigFile> as well as <baseDir>. Finally, all ` +
-        `bundled files and imported or extra assets will be copied from ` +
-        `<fromDir> to <toDir>, without any source file or intermediate file.`,
+        `them not compatible with bundling. Finally, all bundled files and ` +
+        `imported assets will be moved from <fromDir> to <toDir>, without ` +
+        `any source file or intermediate file.`,
     )
-    .option(ENTRIES_CONFIG_FILE_OPTION[0], ENTRIES_CONFIG_FILE_OPTION[1])
     .option(FROM_DIR_OPTION[0], FROM_DIR_OPTION[1])
     .option(TO_DIR_OPTION[0], TO_DIR_OPTION[1])
     .option(EXTRA_FILES_OPTION[0], EXTRA_FILES_OPTION[1])
@@ -247,10 +180,9 @@ function main(): void {
     .option(DEBUG_OPTION[0], DEBUG_OPTION[1])
     .option(TSCONFIG_FILE_OPTION[0], TSCONFIG_FILE_OPTION[1])
     .action((serverSourceFile, serverOutputFile, options) =>
-      bundleWebServer(
+      bundleNodeServer(
         toUnixPath(serverSourceFile),
         toUnixPath(serverOutputFile),
-        toUnixPath(options.entriesConfigFile),
         toUnixPath(options.fromDir),
         toUnixPath(options.toDir),
         toUnixPathFromBundleOptions(options),

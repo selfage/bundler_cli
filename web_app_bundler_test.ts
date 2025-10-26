@@ -69,25 +69,15 @@ TEST_RUNNER.run({
   name: "WebAppBundlerTest",
   cases: [
     {
-      name: "BundleAndCopy",
+      name: "Bundle",
       execute: async () => {
         // Execute
         await bundleWebApps(
           "./test_data/web_app_bundler/entries.yaml",
-          "./test_data/web_app_bundler/bundled_resources.yaml",
           "./test_data/web_app_bundler",
-          "./test_data/web_app_bundler/out_dir"
         );
 
         // Verify
-        await verifyAllResourcesLoaded(
-          "./test_data/web_app_bundler/out_dir",
-          express.static
-        );
-        await verifyAllResourcesLoaded(
-          "./test_data/web_app_bundler/out_dir",
-          expressStaticGzip,
-        );
         await verifyAllResourcesLoaded(
           "./test_data/web_app_bundler",
           express.static,
@@ -125,9 +115,31 @@ TEST_RUNNER.run({
             "./test_data/web_app_bundler/new_inside/some_bin.js",
             "./test_data/web_app_bundler/new_inside/some_bin.js.gz",
             "./test_data/web_app_bundler/new_inside/favicon.ico",
-            "./test_data/web_app_bundler/bundled_resources.yaml",
           ),
         ]);
+      },
+    },
+    {
+      name: "BundleToOutDir",
+      execute: async () => {
+        // Execute
+        await bundleWebApps(
+          "./test_data/web_app_bundler/entries.yaml",
+          "./test_data/web_app_bundler",
+          "./test_data/web_app_bundler/out_dir"
+        );
+
+        // Verify
+        await verifyAllResourcesLoaded(
+          "./test_data/web_app_bundler/out_dir",
+          express.static
+        );
+        await verifyAllResourcesLoaded(
+          "./test_data/web_app_bundler/out_dir",
+          expressStaticGzip,
+        );
+
+        // Verify & Cleanup
         await fs.promises.rmdir("./test_data/web_app_bundler/out_dir", {
           recursive: true,
         });

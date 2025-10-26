@@ -4,7 +4,6 @@ import path = require("path");
 import stream = require("stream");
 import UglifyJS = require("uglify-js");
 import { stripFileExtension } from "./file_extension_stripper";
-import { copyFilesToDir } from "./files_copier";
 import { getStream } from "./get_stream";
 import { compile } from "@selfage/cli/build/compiler";
 
@@ -28,29 +27,6 @@ export interface CommonBundleOptions {
   debug?: boolean;
 }
 
-export async function bundleForNode(
-  sourceFile: string,
-  outputFile: string,
-  fromDir = ".",
-  toDir = fromDir,
-  options?: CommonBundleOptions,
-): Promise<void> {
-  let assetFiles = await bundleForNodeReturnAssetFiles(
-    sourceFile,
-    outputFile,
-    options,
-  );
-
-  if (path.posix.normalize(fromDir) === path.posix.normalize(toDir)) {
-    return;
-  }
-  await copyFilesToDir(
-    [stripFileExtension(outputFile) + ".js", ...assetFiles],
-    fromDir,
-    toDir,
-  );
-}
-
 export async function bundleForNodeReturnAssetFiles(
   sourceFile: string,
   outputFile: string,
@@ -58,30 +34,6 @@ export async function bundleForNodeReturnAssetFiles(
 ): Promise<Array<string>> {
   let baseDir = path.posix.dirname(outputFile);
   return await bundle(sourceFile, outputFile, baseDir, true, false, options);
-}
-
-export async function bundleForBrowser(
-  sourceFile: string,
-  outputFile: string,
-  baseDir = ".",
-  outDir = baseDir,
-  options?: CommonBundleOptions,
-): Promise<void> {
-  let assetFiles = await bundleForBrowserReturnAssetFiles(
-    sourceFile,
-    outputFile,
-    baseDir,
-    options,
-  );
-
-  if (path.posix.normalize(baseDir) === path.posix.normalize(outDir)) {
-    return;
-  }
-  await copyFilesToDir(
-    [stripFileExtension(outputFile) + ".js", ...assetFiles],
-    baseDir,
-    outDir,
-  );
 }
 
 export async function bundleForBrowserReturnAssetFiles(
