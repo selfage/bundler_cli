@@ -1,4 +1,4 @@
-# @seflage/bundler_cli
+# @selfage/bundler_cli
 
 Provides an **extremely opinionated** bundling tool for developing frontend and backend in TypeScript **only**, powered by `browserify` and `uglify-js`, supporting importing asset files without extra plugins. Command line tool name is `bundage`.
 
