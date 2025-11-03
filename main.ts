@@ -80,7 +80,7 @@ let NO_HEADLESS_BROWSER_OPTION = [
 
 function main(): void {
   let packageConfig = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "package.json")).toString(),
+    fs.readFileSync(path.posix.join(__dirname, "package.json")).toString(),
   );
   let program = new Command();
   program.version(packageConfig.version);

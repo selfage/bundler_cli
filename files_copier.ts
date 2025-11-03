@@ -14,7 +14,7 @@ async function copyFileToDir(
   fromDir: string,
   toDir: string,
 ): Promise<void> {
-  let toFile = path.join(toDir, path.relative(fromDir, file));
+  let toFile = path.posix.join(toDir, path.posix.relative(fromDir, file));
   await fs.promises.mkdir(path.posix.dirname(toFile), { recursive: true });
   await fs.promises.copyFile(file, toFile);
 }
@@ -32,7 +32,7 @@ async function moveFileToDir(
   fromDir: string,
   toDir: string,
 ): Promise<void> {
-  let toFile = path.join(toDir, path.relative(fromDir, file));
+  let toFile = path.posix.join(toDir, path.posix.relative(fromDir, file));
   await fs.promises.mkdir(path.posix.dirname(toFile), { recursive: true });
   await fs.promises.rename(file, toFile);
 }

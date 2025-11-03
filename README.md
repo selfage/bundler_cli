@@ -1,114 +1,373 @@
 # @seflage/bundler_cli
 
+Provides an **extremely opinionated** bundling tool for developing frontend and backend in TypeScript **only**, powered by `browserify` and `uglify-js`, supporting importing asset files without extra plugins. Command line tool name is `bundage`.
+
+Note that despite TypeScript can compile with various options, we expect you to set `"module": "commonjs"` and `"moduleResolution": "node"`, due to the use of `browserify`.
+
 ## Install
 
 `npm install @selfage/bundler_cli`
 
-## Overview
+## Quick Start
 
-Written in TypeScript and compiled to ES6 with inline source map & source. See [@selfage/tsconfig](https://www.npmjs.com/package/@selfage/tsconfig) for full compiler options. Provides an opinionated bundling tools for developing frontend and backend in TypeScript, especially single page applications (SPAs), powered by `browserify` and `uglify-js`, supporting importing asset files. See sections below for each sub-command and see [commander](https://www.npmjs.com/package/commander) if you are not sure about CLI syntax.
+```bash
+# Run TypeScript in Node.js (compile + bundle + execute)
+bundage nrun my_script.ts
 
-Note that despite TypeScript can compile with various options, we expect you to set `"module": "commonjs"` and `"moduleResolution": "node"`, due to the use of `browserify`.
+# Run tests in headless Chrome (compile + bundle + test in real browser)
+bundage prun my_test.ts
 
-## Run in node
+# Debug tests visually in Chrome
+bundage prun my_test.ts --no-headless --debug
 
-You can bundle and then run the bundled JS file in Node in one command.
+# Bundle multiple web apps for production
+bundage bwa -o ./dist
 
-```
-$ bundage nrun -h
-Usage: bundage runInNode|nrun [options] <sourceFile> [pass-through-args...]
-
-Compile and bundle from a TypeScript source file, and run the bundled JavaScript file in Node. The file ext can be neglected and is always fixed as .ts. "--" is needed in between <sourceFile> and pass through arguments.
-
-Options:
-  -e, --extra-files <extraFiles...>  Extra TypeScript files to be bundled together with and before the source file.
-  -i, --inline-js <inlineJs...>      Inline JavaScript code to be bundled together with and before all files.
-  -a, --asset-exts <assetExts...>    A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
-  -s, --skip-minify                  Skip minification when bundling. Useful for inspecting bundling issues.
-  -d, --debug                        Include inline source map and inline source.
-  -c, --tsconfig-file <file>         The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.
-  -h, --help                         display help for command
+# Bundle a Node.js server with assets
+bundage bns server.ts server.js -t ./dist
 ```
 
-## Run in Puppeteer
+**💡 Tip:** Run `bundage <command> -h` to see all options for any command.
 
-Based on [@selfage/puppeteer_test_executor](https://www.npmjs.com/package/@selfage/puppeteer_test_executor), it bundles and runs the bundled JS file in browser context with more powerful global functions. The bundled JS file is expected to include everything needed to render a page or bootstrap by loading other files.
+## Quick Decision: Is This Tool Right for You?
 
-```
-$ bundage prun -h
-Usage: bundage runInPuppeteer|prun [options] <sourceFile> [pass-through-args...]
+**✅ Use `bundage` if you:**
+- Want to write **everything in TypeScript** (no HTML/CSS files)
+- Prefer **programmatic DOM creation** over templates
+- Value **type safety** over traditional web development patterns
+- Are building **data-driven UIs** or **Node.js services**
 
-Compile and bundle from a TypeScript source file, and run the bundled JavaScript file in Puppeteer, i.e., headless Chrome. The file ext can be neglected and is always fixed as .ts. "--" is needed in between <sourceFile> and pass 
-through arguments.
+**❌ Use webpack/Vite instead if you:**
+- Need to write **HTML templates** and **CSS files**
+- Use frameworks like **React, Vue, Angular, or Svelte**
+- Want **CSS preprocessors** (Sass, Less, PostCSS)
+- Prefer the **traditional** separation of HTML/CSS/JS
 
-Options:
-  -b, --base-dir <baseDir>           The base directory that all imported assets should be relative to, such that a web server can serve files at this directory. If not provided, it will be the current working directory.
-  -e, --extra-files <extraFiles...>  Extra TypeScript files to be bundled together with and before the source file.
-  -i, --inline-js <inlineJs...>      Inline JavaScript code to be bundled together with and before all files.
-  -a, --asset-exts <assetExts...>    A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field in ./package.json which should be a list of strings.
-  -s, --skip-minify                  Skip minification when bundling. Useful for inspecting bundling issues.
-  -d, --debug                        Include inline source map and inline source.
-  -c, --tsconfig-file <file>         The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.
-  -p, --port <port>                  The port number to start your local server. Default to 8000.
-  -nh, --no-headless                 Turn off running the browser in headless mode.
-  -h, --help                         display help for command
-```
+**Still unsure?** Read the [Philosophy section](#philosophy-typescript-first-no-htmlcss-files) below.
 
-## Bundle web apps
+## Philosophy: TypeScript-First, No HTML/CSS Files
 
-Bundle all web apps (SPAs) for your production web server. The schema of `--entries-config` file is a YAML representation of [WebAppEntries](https://github.com/selfage/bundler_cli/blob/e044a035c42f61313f5df24f8bc3bd19b461220e/web_app_entries_def.ts).
+### Everything is TypeScript
 
-After bundling, e.g. you can start [http-server](https://www.npmjs.com/package/http-server) at `--out-dir`.
+Unlike traditional web bundlers (webpack, Vite, Rollup), `bundage` assumes **all your UI is created programmatically in TypeScript**. There are no separate HTML or CSS files to author. After all, if I can develop backend in TypeScript only, why not for frontend?
 
-```
-$ bundage bwa -h
-Usage: bundage bundleWebApps|bwa [options]
+**What bundage does:**
+```typescript
+// app.ts - Your entire application
+import { E } from '@selfage/element/factory';
+import { Ref } from '@selfage/ref';
+import image = require('./logo.png');
 
-Bundle all TypeScript source files based on <entriesConfig>, generate HTML files pointing to the bundled JS files respectively, compress them with Gzip, and finally move those files into
-<outDir> where your web server can be started.
+// Create DOM elements programmatically
+let button = new Ref<HTMLButtonElement>();
+let container = E.div(
+  {
+    class: 'container',
+    style: `background: #f0f0f0; padding: 20px;`
+  },
+  E.h1({}, E.text('My App')),
+  E.img({ src: image }),
+  E.button({ ref: button }, E.text('Click Me'))
+);
+button.val.addEventListener('click', () => alert('Clicked!'));
 
-Options:
-  -ec, --entries-config-file <entriesConfigFile>  A config file to specify a list of entry files, each of which should be a single page application. Loop for "WebAppEntries" in
-                                                  https://github.com/selfage/bundler_cli/blob/main/web_app_entries_def.ts for its schema. Its directory is the base that all imported assets
-                                                  should be relative to, and a web server can serve files at this directory. If not provided, it will look for ./web_app_entries.yaml.
-  -b, --base-dir <baseDir>                        The base directory that all imported assets should be relative to, such that a web server can serve files at this directory. If not
-                                                  provided, it will be the current working directory.
-  -o, --out-dir <outDir>                          The output directory to where files will be copied. If not provided, or when <outDir> equals <baseDir>, no copies happen.
-  -e, --extra-files <extraFiles...>               Extra TypeScript files to be bundled together with and before the source file.
-  -i, --inline-js <inlineJs...>                   Inline JavaScript code to be bundled together with and before all files.
-  -a, --asset-exts <assetExts...>                 A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which
-                                                  enables `<img src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field in ./package.json which
-                                                  should be a list of strings.
-  -s, --skip-minify                               Skip minification when bundling. Useful for inspecting bundling issues.
-  -d, --debug                                     Include inline source map and inline source.
-  -c, --tsconfig-file <file>                      The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.
-  -h, --help                                      display help for command
+document.body.append(container.element);
 ```
 
-## Bundle node server
-
-Bundle the main server file and dumped to `--to-dir`, where all files can be copied inside a Dockerfile.
-
+The bundler generates a **minimal HTML shell** that just loads your bundled JS:
+```html
+<!-- Generated by bundage -->
+<html>
+  <head><script src="bundle.js"></script></head>
+  <body></body>
+</html>
 ```
-$ bundage bws -h
-Usage: bundage bundleNodeServer|bns [options] <serverSourceFile> <serverOutputFile>
 
-Bundle a TypeScript source file as the server's main file and output. Both file exts can be neglected and are always fixed as .ts and .js respectively. Npm modules are not actually bundled
-due to many of them not compatible with bundling. Finally, all bundled files and imported assets will be moved from <fromDir> to <toDir>, without any source file or intermediate file.
+### Comparison with Other Bundlers
 
-Options:
-  -f, --from-dir <fromDir>           The directoy to copy from. If not provided, it will be the current working directory.
-  -t, --to-dir <toDir>               The directoy to copy to. If not provided, or when <toDir> equals <fromDir>, no copies happen.
-  -e, --extra-files <extraFiles...>  Extra TypeScript files to be bundled together with and before the source file.
-  -i, --inline-js <inlineJs...>      Inline JavaScript code to be bundled together with and before all files.
-  -a, --asset-exts <assetExts...>    A list of file exts that are treated as assets. E.g., with "-a .png .jpg", you could `import imagePath = require('./image.png')` which enables `<img
-                                     src={imagePath}>` or `fs.readFileSync(imagePath)`. If not provided, it will look for `assetExts` field in ./package.json which should be a list of
-                                     strings.
-  -s, --skip-minify                  Skip minification when bundling. Useful for inspecting bundling issues.
-  -d, --debug                        Include inline source map and inline source.
-  -c, --tsconfig-file <file>         The file path to tsconfig.json. If not provided, it will try to look for it at the current working directory.
-  -h, --help                         display help for command
+| Aspect | bundage (this) | webpack/Vite/Rollup |
+|--------|----------------|---------------------|
+| **HTML Files** | ❌ Auto-generated shell only | ✅ Author index.html directly |
+| **CSS Files** | ❌ Inline styles or CSS-in-JS | ✅ Import .css files |
+| **DOM Creation** | ✅ Programmatic (TypeScript) | 🔧 Template-based (HTML) |
+| **Style Approach** | TypeScript strings/objects | CSS modules, PostCSS, Sass |
+| **Component Model** | Type-safe factory functions | JSX, Vue templates, Svelte |
+| **Asset Imports** | ✅ Images, fonts, etc. | ✅ Images, CSS, fonts, etc. |
+
+### Traditional Approach (webpack/Vite)
+
+```html
+<!-- index.html - You write this -->
+<html>
+  <body>
+    <div class="container">
+      <h1>My App</h1>
+      <img src="./logo.png">
+      <button id="myBtn">Click Me</button>
+    </div>
+  </body>
+</html>
 ```
+
+```css
+/* style.css - You write this */
+.container {
+  background: #f0f0f0;
+  padding: 20px;
+}
+```
+
+```typescript
+// app.ts - Just add behavior
+document.getElementById('myBtn').onclick = () => alert('Clicked!');
+```
+
+```typescript
+// Entry point
+import './style.css';
+import './app.ts';
+```
+
+### Why This Matters
+
+**✅ You should use bundage if:**
+- You prefer **type-safe DOM manipulation** (no `querySelector` runtime errors)
+- You want **everything in TypeScript** (no context switching between HTML/CSS/TS)
+- You use component libraries like `@selfage/element` or similar
+- You're building **programmatic UIs** or **data-driven interfaces**
+- You want to avoid the complexity of JSX/template compilation
+
+**❌ You should NOT use bundage if:**
+- You prefer writing **HTML templates** directly
+- Your designers provide **static HTML/CSS** files
+- You want to use **CSS preprocessors** (Sass, Less, PostCSS)
+- You're using **frameworks** like React, Vue, Angular, or Svelte
+- You need **existing HTML/CSS** from templates or themes
+
+### Asset Handling
+
+**What IS supported:**
+```typescript
+// Images, fonts, data files - any binary assets
+import logoPath = require('./logo.png');
+import fontPath = require('./font.woff2');
+import dataPath = require('./config.json');
+
+// Use in your TypeScript-generated DOM
+E.img({ src: logoPath });
+```
+
+**What is NOT supported:**
+```typescript
+// ❌ Cannot import CSS files
+import './styles.css';  // Won't work
+
+// ❌ Cannot use HTML files as templates
+import template from './template.html';  // Won't work
+```
+
+**Solution:** Write styles inline or use CSS-in-JS:
+```typescript
+// Inline styles
+E.div(
+  { style: `color: blue; font-size: 16px;` },
+  E.text('Styled content')
+);
+
+// Or style programmatically
+let div = E.div({}, E.text('Content'));
+div.element.style.color = 'blue';
+div.element.style.fontSize = '16px';
+```
+
+### Real-World Example
+
+**bundage way:**
+```typescript
+// main.ts
+import { E } from '@selfage/element/factory';
+
+class App {
+  public constructor(document: Document) {
+    document.body.append(
+      E.div(
+        {
+          class: 'app',
+          style: 'max-width: 800px; margin: 0 auto;'
+        },
+        E.div(
+          {
+            class: 'header',
+            style: 'background: #333; color: white; padding: 20px;'
+          },
+          E.h1({}, E.text('My application'))
+        )
+      )
+    );
+  }
+}
+
+new App(document);
+```
+
+**Traditional way (Vite + React):**
+```tsx
+// App.tsx
+import './App.css';
+
+export function App() {
+  return (
+    <div className="app">
+      <div className="header">
+        <h1>My Application</h1>
+      </div>
+    </div>
+  );
+}
+```
+
+```css
+/* App.css */
+.app { max-width: 800px; margin: 0 auto; }
+.header { background: #333; color: white; padding: 20px; }
+```
+
+### Summary
+
+`bundage` is designed for developers who want to **write everything in TypeScript**, with type safety from top to bottom. If you prefer the traditional separation of HTML/CSS/JS, or use frameworks that rely on templates, this tool is **not** for you. Use webpack, Vite, or Rollup instead.
+
+## Why This Approach Excels for Testing
+
+The TypeScript-first philosophy makes **browser testing extremely simple**:
+
+### Testing with `bundage prun`
+
+```typescript
+// my_component_test.ts
+import { E } from '@selfage/element/factory';
+
+// Create component
+let button = E.button({}, E.text('Click'));
+button.addEventListener('click', () => alert('works!'));
+document.body.append(button);
+
+// Test it
+button.click();  // Type-safe!
+console.log('Button text:', button.textContent);
+
+// Test with real assets
+import imagePath = require('./test-image.png');
+let img = E.img({ src: imagePath });
+document.body.append(img);
+console.log('Image loaded from:', img.src);
+```
+
+```bash
+# Run in headless Chrome with one command
+bundage prun my_component_test.ts -a .png
+
+# Debug visually with Chrome open
+bundage prun my_component_test.ts -a .png --no-headless --debug
+```
+
+**vs. Traditional Testing (Jest + React Testing Library):**
+```typescript
+// Setup required: jest.config.js, babel config, etc.
+import { render, fireEvent } from '@testing-library/react';
+
+test('button works', () => {
+  const { getByText } = render(<Button>Click</Button>);
+  fireEvent.click(getByText('Click'));
+  // Mock DOM, no real rendering
+});
+```
+
+### Advantages
+
+| Feature | bundage prun | Jest + Testing Library |
+|---------|--------------|----------------------|
+| **Setup** | Zero config | Complex config files |
+| **DOM** | Real Chrome | jsdom (limited) |
+| **Assets** | Real loading | Mocked |
+| **Debugging** | Chrome DevTools | Node debugger |
+| **Visual** | `--no-headless` flag | Not possible |
+| **Type Safety** | Full TypeScript | Partial (test utils) |
+
+### Testing Comparison
+
+**bundage approach:**
+```typescript
+// Everything is type-safe TypeScript
+import { E } from '@selfage/element/factory';
+import { Ref } from '@selfage/ref';
+
+let button = new Ref<HTMLButtonElement>();
+let app = E.div(
+  {},
+  E.button({ ref: button }, E.text('Click'))
+);
+button.val.addEventListener('click', handleClick);
+
+// Tests run in real Chrome
+bundage prun test.ts -a .png .css --no-headless
+```
+
+**Traditional approach:**
+```jsx
+// JSX needs compilation, types are partial
+import { render } from '@testing-library/react';
+
+function App() {
+  return <div><button onClick={handleClick}>Click</button></div>;
+}
+
+// Tests run in jsdom (not real browser)
+jest test.ts
+```
+
+## Commands
+
+`bundage` provides four main commands. Use `-h` flag to see detailed options for each:
+
+```bash
+bundage nrun -h    # Run in Node.js
+bundage prun -h    # Run in Puppeteer (headless Chrome)
+bundage bwa -h     # Bundle Web Apps
+bundage bns -h     # Bundle Node Server
+```
+
+### Command Overview
+
+**`bundage nrun <sourceFile> [args...]`** (alias: `runInNode`)
+- Compiles, bundles, and runs TypeScript in Node.js
+- Pass-through args: `bundage nrun script.ts -- --arg1 value1`
+
+**`bundage prun <sourceFile> [args...]`** (alias: `runInPuppeteer`)
+- Runs in headless Chrome with real DOM (based on [@selfage/puppeteer_test_executor](https://www.npmjs.com/package/@selfage/puppeteer_test_executor))
+- Additional flags: `-p <port>` (default: 8000), `-nh` (visible browser mode)
+- Pass-through args: `bundage prun test.ts -- --test-flag`
+
+**`bundage bwa`** (alias: `bundleWebApps`)
+- Bundles multiple SPAs from config file (default: `./web_app_entries.yaml`)
+- Generates HTML, minifies, and compresses with Gzip
+- Config schema: [WebAppEntries](https://github.com/selfage/bundler_cli/blob/main/web_app_entries_def.ts)
+- Additional flags: `-ec <configFile>`, `-o <outDir>`
+
+**`bundage bns <serverSourceFile> <serverOutputFile>`** (alias: `bundleNodeServer`)
+- Bundles Node.js server and copies assets (NPM modules kept as external dependencies)
+- Additional flags: `-f <fromDir>`, `-t <toDir>`
+
+### Common Options
+
+These options are available across most commands:
+
+- **`-e, --extra-files <files...>`** - Extra TypeScript files to bundle before the source file
+- **`-i, --inline-js <code...>`** - Inline JavaScript code to bundle before all files
+- **`-a, --asset-exts <exts...>`** - File extensions to treat as assets (e.g., `-a .png .jpg`)
+  - Alternatively: add `"assetExts": [".png", ".jpg"]` in your `package.json`
+- **`-s, --skip-minify`** - Skip minification (useful for debugging)
+- **`-d, --debug`** - Include inline source maps and source code
+- **`-c, --tsconfig-file <file>`** - Path to `tsconfig.json` (defaults to `./tsconfig.json`)
 
 ## Options explained
 
@@ -136,7 +395,7 @@ Pass-through arguments are made available by writing them to the temp HTML file,
 
 ### Function APIs
 
-Functions are made avaialble thanks to Puppeteer's `exposeFunction`. See [@selfage/puppeteer_executor_api#all-apis](https://github.com/selfage/puppeteer_executor_api#all-apis) for all available APIs.
+Functions are made avaialble thanks to Puppeteer's `exposeFunction`. See [@selfage/puppeteer_executor_api#all-apis](https://github.com/selfage/puppeteer_executor_api#all-apis) for all available APIs. It's easier to use with `@selfage/puppeteer_test_runner` which cleans up after each test, e.g. closes the browser.
 
 ## General API access
 
